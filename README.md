@@ -3,7 +3,7 @@
 This project is a Discord bot that can receive images from users and classify them using a machine learning model created with Teachable Machine and Keras.
 The bot was created as a practice project to combine Discord commands with an image classification model! 
 
-DISCLAIMER : ONLY SPARROW OR PIGEONS INMAGES.
+DISCLAIMER : This model  clasifies restricted or not restricted places
 
 Here you have some features:
 
