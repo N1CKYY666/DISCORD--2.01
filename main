@@ -9,14 +9,42 @@ bot = commands.Bot(command_prefix='$', intents=intents)
 
 @bot.command()
 async def checking(ctx):
+
     if ctx.message.attachments:
+
         for attachment in ctx.message.attachments:
+
             file_name = attachment.filename
-            url = attachment.url
-            await attachment.save(f"./{attachment.filename}")
-            await ctx.send(get_class(model_path="./keras_model.h5", labels="labels.txt", image_path=f"./{attachment.filename}"))
+
+            await attachment.save(f"./{file_name}")
+
+            zone, probability = get_class(
+                model_path="./keras_model.places.h5",
+                labels="./labels.places.txt",
+                image_path=f"./{file_name}"
+            )
+
+            probability = round(probability * 100, 2)
+
+            if zone == "RESTRICTED":
+
+                await ctx.send(
+                    f"Zone: {zone}\n"
+                    f"Probability: {probability}%\n"
+                    f"⚠️ WARNING: This is a restricted area."
+                )
+
+            else:
+
+                await ctx.send(
+                    f"Zone: {zone}\n"
+                    f"Probability: {probability}%\n"
+                    f"✅ No problem detected. This area is not restricted."
+                )
+
     else:
-        await ctx.send("No image sent, blad")
+
+        await ctx.send("Please send an image.")
 
 @bot.event
 async def on_ready():
@@ -30,4 +58,4 @@ async def hello(ctx):
 async def heh(ctx, count_heh = 5):
     await ctx.send("he" * count_heh)
 
-bot.run("TOKEN")
+bot.run("yourtoken")
