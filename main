@@ -1,21 +1,218 @@
+import os
+import random
+import tempfile
+
 import discord
 from discord.ext import commands
+import speech_recognition as sr
+from pydub import AudioSegment
+
 from model import get_class
+
 
 intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix='$', intents=intents)
+recognizer = sr.Recognizer()
+
+
+async def transcribe_attachment(attachment):
+    """Download a Discord audio attachment, convert it to WAV and transcribe it."""
+
+    suffix = os.path.splitext(attachment.filename)[1] or ".ogg"
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        original_path = os.path.join(temp_dir, "input" + suffix)
+        wav_path = os.path.join(temp_dir, "output.wav")
+
+        await attachment.save(original_path)
+
+        audio_segment = AudioSegment.from_file(original_path)
+        audio_segment.export(wav_path, format="wav")
+
+        with sr.AudioFile(wav_path) as source:
+            audio = recognizer.record(source)
+
+        try:
+            text = recognizer.recognize_google(audio, language="en-US")
+            return text.lower().strip()
+        except sr.UnknownValueError:
+            return ""
+        except sr.RequestError:
+            return None
+
+
+async def get_audio_answer(ctx):
+    """Wait for the same user to send an audio attachment in the same channel."""
+
+    def check(message):
+        return (
+            message.author == ctx.author
+            and message.channel == ctx.channel
+            and len(message.attachments) > 0
+        )
+
+    await ctx.send("🎧 Send a voice message or audio file with your answer.")
+
+    try:
+        message = await bot.wait_for("message", timeout=45.0, check=check)
+    except TimeoutError:
+        await ctx.send("⌛ Time's up. Start again with `$english`.")
+        return None
+
+    answer = await transcribe_attachment(message.attachments[0])
+
+    if answer is None:
+        await ctx.send("⚠️ Speech recognition service error.")
+        return None
+
+    if answer == "":
+        await ctx.send("😵‍💫 Bro... was that even English?")
+    else:
+        await ctx.send(f"You said: **{answer}**")
+
+    return answer
+
+
+async def level_1(ctx):
+    await ctx.send("**Level 1 - Words!**")
+
+    words = ["apple", "house", "coffee", "teacher", "chicken"]
+    random.shuffle(words)
+    score = 0
+
+    for word in words[:3]:
+        await ctx.send(f"Repeat this word pliz:\n**>> {word}**")
+        answer = await get_audio_answer(ctx)
+
+        if answer is None:
+            return score
+
+        if answer == word:
+            await ctx.send("⭐ Correct!")
+            score += 10
+        else:
+            await ctx.send(f"😵‍💫 Wrong! The answer is: **{word}**")
+
+    await ctx.send(f"Your Level 1 score: **{score}**")
+    return score
+
+
+async def level_2(ctx):
+    await ctx.send("**Level 2 - Sentences!**")
+
+    sentences = [
+        "good morning",
+        "I like coffee",
+        "I have a dog",
+        "I am a student"
+    ]
+
+    random.shuffle(sentences)
+    score = 0
+
+    for sentence in sentences[:3]:
+        await ctx.send(f"Repeat this sentence :3:\n**>> {sentence}**")
+        answer = await get_audio_answer(ctx)
+
+        if answer is None:
+            return score
+
+        if answer == sentence.lower():
+            await ctx.send("⭐ Correct!")
+            score += 20
+        else:
+            await ctx.send(f"😵‍💫 Wrong! The answer is: **{sentence}**")
+
+    await ctx.send(f"Your Level 2 score: **{score}**")
+    return score
+
+
+async def level_3(ctx):
+    await ctx.send("**Level 3 - Translate!**")
+
+    words = {
+        "casa": "house",
+        "perro": "dog",
+        "gato": "cat",
+        "agua": "water",
+        "escuela": "school"
+    }
+
+    questions = list(words.items())
+    random.shuffle(questions)
+    score = 0
+
+    for spanish, english in questions[:3]:
+        await ctx.send(f"Say this word in English buddy:\n**>> {spanish}**")
+        answer = await get_audio_answer(ctx)
+
+        if answer is None:
+            return score
+
+        if answer == english:
+            await ctx.send("⭐ Correct!")
+            score += 30
+        else:
+            await ctx.send(f"😵‍💫 Wrong! The answer is: **{english}**")
+
+    await ctx.send(f"Your Level 3 score: **{score}**")
+    return score
+
+
+@bot.command()
+async def english(ctx):
+    await ctx.send(
+        "**English Game**\n"
+        "1. 🔤 Level 1 - Words\n"
+        "2. 📖 Level 2 - Sentences\n"
+        "3. 🌍 Level 3 - Translate\n"
+        "4. 🏆 Play all\n\n"
+        "Type **1, 2, 3 or 4**."
+    )
+
+    def check(message):
+        return (
+            message.author == ctx.author
+            and message.channel == ctx.channel
+            and message.content in ["1", "2", "3", "4"]
+        )
+
+    try:
+        message = await bot.wait_for("message", timeout=30.0, check=check)
+    except TimeoutError:
+        await ctx.send("⌛ You took too long. Type `$english` to try again.")
+        return
+
+    option = message.content
+    total = 0
+
+    if option == "1":
+        total = await level_1(ctx)
+    elif option == "2":
+        total = await level_2(ctx)
+    elif option == "3":
+        total = await level_3(ctx)
+    elif option == "4":
+        total += await level_1(ctx)
+        total += await level_2(ctx)
+        total += await level_3(ctx)
+
+    await ctx.send(
+        "------------------------\n"
+        f"🏆 Your final score: **{total}**\n"
+        "------------------------"
+    )
+
 
 @bot.command()
 async def checking(ctx):
+    print("Attachments:", len(ctx.message.attachments))
 
     if ctx.message.attachments:
-
         for attachment in ctx.message.attachments:
-
             file_name = attachment.filename
-
             await attachment.save(f"./{file_name}")
 
             zone, probability = get_class(
@@ -27,35 +224,35 @@ async def checking(ctx):
             probability = round(probability * 100, 2)
 
             if zone == "RESTRICTED":
-
                 await ctx.send(
                     f"Zone: {zone}\n"
                     f"Probability: {probability}%\n"
-                    f"⚠️ WARNING: This is a restricted area."
+                    "⚠️ WARNING: This is a restricted area."
                 )
-
             else:
-
                 await ctx.send(
                     f"Zone: {zone}\n"
                     f"Probability: {probability}%\n"
-                    f"✅ No problem detected. This area is not restricted."
+                    "✅ No problem detected. This area is not restricted."
                 )
-
     else:
-
         await ctx.send("Please send an image.")
+
 
 @bot.event
 async def on_ready():
-    print(f'We have logged in as {bot.user}')
+    print(f"We have logged in as {bot.user}")
+
 
 @bot.command()
 async def hello(ctx):
-    await ctx.send(f'Hi! I am a bot {bot.user}!')
+    await ctx.send(f"Hi! I am a bot {bot.user}!")
+
 
 @bot.command()
-async def heh(ctx, count_heh = 5):
+async def heh(ctx, count_heh=5):
     await ctx.send("he" * count_heh)
 
-bot.run("yourtoken")
+
+
+bot.run("TOKEN")
