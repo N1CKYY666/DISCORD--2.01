@@ -160,6 +160,36 @@ async def level_3(ctx):
     await ctx.send(f"Your Level 3 score: **{score}**")
     return score
 
+async def level_4(ctx):
+    await ctx.send("**Level 4 - Challenge!**")
+
+    sentences = [
+        "I usually wake up early",
+        "The weather is beautiful today",
+        "I would like a cup of coffee",
+        "My favorite subject is English",
+        "I am learning how to speak English"
+    ]
+
+    random.shuffle(sentences)
+    score = 0
+
+    for sentence in sentences[:3]:
+        await ctx.send(f"Repeat this sentence:\n**>> {sentence}**")
+        answer = await get_audio_answer(ctx)
+
+        if answer is None:
+            return score
+
+        if answer == sentence.lower():
+            await ctx.send("⭐ Excellent!")
+            score += 40
+        else:
+            await ctx.send(f"😵‍💫 Wrong! The answer is: **{sentence}**")
+
+    await ctx.send(f"Your Level 4 score: **{score}**")
+    return score
+
 
 @bot.command()
 async def english(ctx):
@@ -168,15 +198,16 @@ async def english(ctx):
         "1. 🔤 Level 1 - Words\n"
         "2. 📖 Level 2 - Sentences\n"
         "3. 🌍 Level 3 - Translate\n"
-        "4. 🏆 Play all\n\n"
-        "Type **1, 2, 3 or 4**."
+        "4. 🔥 Level 4 - Challenge\n"
+        "5. 🏆 Play all\n\n"
+        "Type **1, 2, 3, 4 or 5**."
     )
 
     def check(message):
         return (
             message.author == ctx.author
             and message.channel == ctx.channel
-            and message.content in ["1", "2", "3", "4"]
+            and message.content in ["1", "2", "3", "4", "5"]
         )
 
     try:
@@ -195,9 +226,12 @@ async def english(ctx):
     elif option == "3":
         total = await level_3(ctx)
     elif option == "4":
+        total = await level_4(ctx)
+    elif option == "5":
         total += await level_1(ctx)
         total += await level_2(ctx)
         total += await level_3(ctx)
+        total += await level_4(ctx)
 
     await ctx.send(
         "------------------------\n"
