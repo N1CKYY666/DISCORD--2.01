@@ -1,49 +1,60 @@
-# Discord Image Classification & English Learning Bot
+# Discord Image Classification, English Learning & Text-to-Speech Bot
 
-This project is a **Discord bot** developed in Python that combines two main features:
+This project is a **Discord bot** developed in Python that combines three main features:
 
 1. **Image classification** using a machine learning model created with **Google Teachable Machine** and **Keras**.
 2. An **English learning game** that allows users to practice words, sentences, and translations using voice recordings.
+3. **Text-to-Speech (TTS)** using `pyttsx3`, allowing the bot to generate spoken messages and audio alerts.
 
-The project was created as a practice exercise to combine **Discord commands, Python, machine learning, image processing, and speech recognition**.
+The project was created as a practice exercise to combine **Discord commands, Python, machine learning, image processing, speech recognition, and speech synthesis**.
 
-> **Disclaimer:** The image classification model classifies places as **RESTRICTED** or **NOT RESTRICTED**.
+> **Disclaimer:** The image classification model predicts whether a place belongs to the RESTRICTED or NOT RESTRICTED class. Predictions are not guaranteed to be accurate and should not be used as a real security system.
 
 ---
 
 ## Features
 
-The bot includes several commands that allow users to interact with it.
-
 ### `$hello`
 
 The bot sends a greeting message.
-
-Example:
 
 ```text
 $hello
 ```
 
----
-
 ### `$heh`
 
-The bot repeats `"he"` a specified number of times.
-
-Example:
+The bot repeats "he" a specified number of times.
 
 ```text
 $heh 5
 ```
 
----
+### `$say` — Text-to-Speech
 
-### `$checking`
+The user writes a message, and the bot converts it into a spoken audio file using `pyttsx3`.
+
+Example:
+
+```text
+$say Hello humans! I am your little robot!
+```
+
+The bot generates a WAV audio file and sends it to the Discord channel.
+
+The command supports messages up to 200 characters.
+
+### `$checking` — Image Classification with Voice Alerts
 
 The user sends an image as an attachment together with the command.
 
-The bot downloads the image, analyzes it using the trained Keras model, and returns the **predicted class** and **confidence score**.
+The bot:
+
+1. Downloads the attached image.
+2. Analyzes it using the trained Keras model.
+3. Returns the predicted class and confidence score.
+4. Generates a voice message using `pyttsx3`.
+5. Sends the audio file to the Discord channel.
 
 Example:
 
@@ -51,18 +62,22 @@ Example:
 $checking
 ```
 
-Attach an image of a place when sending the command.
+Attach an image when sending the command.
 
-Possible output:
+**Possible result 1:**
 
 ```text
 Zone: RESTRICTED
 Probability: 98.5%
 
-WARNING: This is a restricted area.
+WARNING: This is a restricted area!
 ```
 
-or:
+The bot also generates an audio file saying:
+
+"WARNING! RESTRICTED AREA!"
+
+**Possible result 2:**
 
 ```text
 Zone: NOT RESTRICTED
@@ -71,34 +86,37 @@ Probability: 97.2%
 No problem detected. This area is not restricted.
 ```
 
----
+The bot generates an audio file saying:
 
-### `$english`
+"No problem detected. This area is not restricted."
 
-Starts the **English Learning Game**.
+> The bot sends WAV audio files in the text channel. It does not automatically join a Discord voice channel.
 
-Example:
+### `$english` — English Learning Game
+
+Starts an interactive English learning game using voice recognition.
 
 ```text
 $english
 ```
 
-The bot displays four options:
+The bot displays five options:
 
 ```text
 1. Level 1 - Words
 2. Level 2 - Sentences
 3. Level 3 - Translate
-4. Play all
+4. Level 4 - Challenge
+5. Play all
 ```
 
 The user selects a level by typing the corresponding number.
 
 ---
 
-## English Game
+## English Learning Game
 
-The English Game contains three difficulty levels.
+The English Game contains four difficulty levels.
 
 ### Level 1 - Words
 
@@ -114,13 +132,7 @@ teacher
 chicken
 ```
 
-Each correct answer gives:
-
-```text
-10 points
-```
-
----
+Each correct answer awards **10 points**.
 
 ### Level 2 - Sentences
 
@@ -137,29 +149,11 @@ I am a student
 
 The user must pronounce the sentence correctly.
 
-Each correct answer gives:
-
-```text
-20 points
-```
-
----
+Each correct answer awards **20 points**.
 
 ### Level 3 - Translate
 
-The bot displays a word in Spanish.
-
-Examples:
-
-```text
-casa
-perro
-gato
-agua
-escuela
-```
-
-The user must say the English translation.
+The bot displays a Spanish word, and the user must say its English translation.
 
 Examples:
 
@@ -167,320 +161,50 @@ Examples:
 casa → house
 perro → dog
 gato → cat
+agua → water
+escuela → school
 ```
 
-Each correct answer gives:
+Each correct answer awards **30 points**.
+
+### Level 4 - Challenge
+
+The bot displays longer and more complex English sentences.
+
+Examples:
 
 ```text
-30 points
+I usually wake up early
+The weather is beautiful today
+I would like a cup of coffee
+My favorite subject is English
+I am learning how to speak English
 ```
 
----
+The user must repeat the complete sentence using a voice message.
+
+Each correct answer awards **40 points**.
 
 ### Play All
 
-Option `4` allows the user to play all three levels.
+Option `5` allows the user to complete all four levels.
 
-The final score is calculated by adding the points obtained in every level.
+Each level randomly selects three questions.
 
-Example:
+The final score is calculated by adding the points obtained in each level.
+
+**Maximum possible score: 300 points.**
 
 ```text
-Your final score: 180
+Your final score: 300
 ```
 
 ---
 
-## Voice Recognition
+## Speech Recognition
 
-The English Game uses **SpeechRecognition** to convert the user's recorded audio into text.
+The English Game uses **SpeechRecognition** to convert recorded audio into text.
 
 The bot:
 
-1. Receives an audio file or Discord voice message.
-2. Downloads the audio.
-3. Converts the audio to WAV when necessary.
-4. Reads the audio using `SpeechRecognition`.
-5. Uses Google Speech Recognition with English (`en-US`).
-6. Converts the recognized text to lowercase.
-7. Compares the recognized answer with the expected answer.
-8. Awards points when the answer is correct.
-
-Example:
-
-```text
-Word: teacher
-
-User audio:
-"teacher"
-
-Bot:
-You said: teacher
-Correct!
-```
-
-> **Note:** The bot does not directly record the user's computer microphone. The user must send a supported audio file or voice message through Discord.
-
----
-
-## Project Files
-
-The project contains the main bot files and the machine learning model:
-
-```text
-project/
-│
-├── main.py
-├── model.py
-├── keras_model.places.h5
-├── labels.places.txt
-├── README.md
-└── .gitignore
-```
-
-Additional temporary audio files may be created while the English Game is running.
-
----
-
-## `main.py`
-
-Contains the main Discord bot configuration and commands.
-
-It includes:
-
-* Discord bot configuration.
-* `$hello` command.
-* `$heh` command.
-* `$checking` command.
-* `$english` command.
-* Image attachment handling.
-* Audio attachment handling.
-* English Game levels.
-* Score calculation.
-* Speech recognition.
-
----
-
-## `model.py`
-
-Contains the `get_class()` function used by the image classification system.
-
-This function:
-
-1. Loads the Keras model.
-2. Loads the class labels.
-3. Opens the image.
-4. Resizes the image to **224 × 224 pixels**.
-5. Converts the image into a NumPy array.
-6. Normalizes the image.
-7. Sends the image to the model.
-8. Returns the predicted class and confidence score.
-
----
-
-## Machine Learning Model
-
-The image classification model was created using **Google Teachable Machine**.
-
-The model recognizes two classes:
-
-```text
-RESTRICTED
-NOT RESTRICTED
-```
-
-The trained model is stored in:
-
-```text
-keras_model.places.h5
-```
-
-The class names are stored in:
-
-```text
-labels.places.txt
-```
-
----
-
-## Requirements
-
-This project uses **Python 3.11**.
-
-> **Important:** Python 3.11 is recommended for compatibility with the machine learning libraries used in this project.
-
-Install the required Python libraries:
-
-```bash
-pip install discord.py
-pip install numpy
-pip install keras
-pip install requests
-pip install tensorflow==2.12.0
-pip install Pillow
-pip install SpeechRecognition
-pip install pydub
-```
-
----
-
-## FFmpeg
-
-The English Game uses **pydub** to process audio files.
-
-For this reason, **FFmpeg must also be installed on the computer**.
-
-On Windows, FFmpeg can be installed using:
-
-```powershell
-winget install Gyan.FFmpeg
-```
-
-After installing FFmpeg, restart the terminal or Visual Studio Code.
-
-Check that FFmpeg is available with:
-
-```powershell
-ffmpeg -version
-```
-
-If FFmpeg is installed correctly, information about the installed version will be displayed.
-
----
-
-## How to Run the Bot
-
-### 1. Create the Discord bot
-
-Create an application and bot using the **Discord Developer Portal**.
-
-Obtain the bot token and invite the bot to your Discord server.
-
----
-
-### 2. Install the dependencies
-
-Install the required Python libraries and FFmpeg.
-
----
-
-### 3. Add the machine learning files
-
-Make sure these files are located in the project folder:
-
-```text
-keras_model.places.h5
-labels.places.txt
-```
-
----
-
-### 4. Configure the Discord token
-
-For security reasons, the Discord token should not be written directly in the Python source code.
-
-The bot reads the token from an environment variable called:
-
-```text
-DISCORD_TOKEN
-```
-
-For example, in PowerShell:
-
-```powershell
-$env:DISCORD_TOKEN="YOUR_DISCORD_BOT_TOKEN"
-```
-
----
-
-### 5. Run the bot
-
-Run:
-
-```bash
-python main.py
-```
-
-When the bot connects successfully, the terminal will display:
-
-```text
-We have logged in as BOT_NAME
-```
-
----
-
-## Commands Summary
-
-| Command | Function |
-|---|---|
-| `$hello` | Sends a greeting |
-| `$heh 5` | Repeats `"he"` a specified number of times |
-| `$checking` | Classifies an attached image |
-| `$english` | Starts the English Learning Game |
-
----
-
-## Technologies Used
-
-* Python 3.11
-* Discord.py
-* TensorFlow
-* Keras
-* NumPy
-* Pillow
-* Google Teachable Machine
-* SpeechRecognition
-* Google Speech Recognition
-* pydub
-* FFmpeg
-
----
-
-## Security
-
-**Never upload your real Discord bot token to GitHub.**
-
-Do not publish code containing:
-
-```python
-bot.run("YOUR_REAL_TOKEN")
-```
-
-Instead, use an environment variable:
-
-```python
-import os
-
-TOKEN = os.getenv("DISCORD_TOKEN")
-bot.run(TOKEN)
-```
-
-Files containing passwords, tokens, credentials, or other private information should also be included in `.gitignore`.
-
-If a Discord bot token is accidentally published, it should be **regenerated immediately**.
-
----
-
-## Purpose
-
-This project was developed as a learning exercise to practice:
-
-* Discord bot development.
-* Python functions.
-* Conditional statements and loops.
-* Dictionaries and lists.
-* Random question selection.
-* File handling.
-* Image processing.
-* Machine learning model integration.
-* Image classification with Keras.
-* Audio processing.
-* Speech recognition.
-* User interaction through Discord.
-* Basic cybersecurity practices.
-
----
-
-## Author
-
-Developed as a practice project for learning **Python, Discord bots, machine learning, image classification, and speech recognition**.
+1
