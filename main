@@ -256,7 +256,7 @@ async def checking(ctx):
 
                 await attachment.save(image_path)
 
-                zone, probability = get_class(
+                zone, probability, confidence = get_class(
                     model_path="./keras_model.places.h5",
                     labels="./labels.places.txt",
                     image_path=image_path
@@ -264,11 +264,13 @@ async def checking(ctx):
 
                 probability = round(probability * 100, 2)
 
+                
                 if zone == "RESTRICTED":
                     message = "WARNING! RESTRICTED AREA!"
                     await ctx.send(
                         f"Zone: {zone}\n"
                         f"Probability: {probability}%\n"
+                        f"Confidence: {confidence}\n"
                         "WARNING: This is a restricted area!"
                     )
                 else:
@@ -276,8 +278,10 @@ async def checking(ctx):
                     await ctx.send(
                         f"Zone: {zone}\n"
                         f"Probability: {probability}%\n"
+                        f"Confidence: {confidence}\n"
                         "No problem detected. This area is not restricted."
                     )
+
 
                 audio_path = os.path.join(temp_dir, "warning.wav")
 
@@ -352,4 +356,4 @@ async def say(ctx, *, text):
             await ctx.send("My voice is broken, dude. try again when you pay me.")
 
 
-bot.run("TOKEN")
+bot.run("MY_TOKEN")
