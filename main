@@ -381,7 +381,7 @@ async def say(ctx, *, text):
             await ctx.send("My voice is broken, dude. try again when you pay me.")
 
 def get_me_weather(city : str):
-    base_url = f"https://wttr.in/{city}?format=%C+%t"
+    base_url = f"https://wttr.in/{city}?format=%C|%t"
     response = requests.get(base_url)
 
     #status
@@ -415,6 +415,23 @@ moon_images = {
     "🌗": "last_quarter.png",
     "🌘": "waning_crescent.png"
 }
+
+
+
+weather_images = {
+    "sunny": "sunny.png",
+    "clear": "sunny.png",
+    "partly cloudy": "partly_cloudy.png",
+    "cloudy": "cloudy.png",
+    "overcast": "cloudy.png",
+    "rain": "rain.png",
+    "light rain": "rain.png",
+    "heavy rain": "rain.png",
+    "thunderstorm": "thunderstorm.png",
+    "snow": "snow.png",
+    "windy": "wind.png"
+}
+
 
 
 @bot.command()
@@ -476,17 +493,26 @@ async def night(ctx, *, city: str):
 
 
 
+
 @bot.command()
 async def weather(ctx, *, city: str):
 
     climate = await asyncio.to_thread(get_me_weather, city)
 
+    if "|" not in climate:
+        await ctx.send("The skies refuse to answer me, mortal.")
+        return
+
+    condition, temperature = climate.split("|", 1)
+
+    condition = condition.strip()
+    temperature = temperature.strip()
+
     phrases = [
         "Even the weather is more interesting than you.",
-        "How delightful. Another day among mortals.",
+        "Centuries of wisdom, wasted on weather reports.",
         "I suppose you needed me to look at the sky for you.",
-        "The heavens have spoken. Try to keep up.",
-        "Centuries of wisdom, wasted on weather reports."
+        "How delightful. Another day among mortals."
     ]
 
     phrase = random.choice(phrases)
@@ -494,25 +520,46 @@ async def weather(ctx, *, city: str):
     embed = discord.Embed(
         title="─── THE FORECAST ───",
         description=(
-            f"**Location:** {city}\n"
-            f"**Weather:** {climate}\n\n"
+            f"**Location:** {city}\n\n"
+            f"**Weather:** {condition}\n"
+            f"**Temperature:** {temperature}\n\n"
             f"*\"{phrase}\"*"
         ),
         color=0x74459A
     )
 
     embed.set_footer(
-        text="THE REAL OLROX • Boring Weather Report"
+        text="THE REAL OLROX • Weather Report... Unfortunately."
     )
 
-    await ctx.send(embed=embed)
+    image_name = weather_images.get(condition.lower())
 
-    #MENSAJILLO DE VOCECILLA
-    message = f"The weather in {city} is {climate}"
+    # Prepare the voice message
+    message = f"The weather in {city} is {condition}, {temperature}"
     spoken_message = message.replace("°C", " degrees Celsius")
 
     with tempfile.TemporaryDirectory() as temp_dir:
+
         audio_path = os.path.join(temp_dir, "weather.wav")
+
+        if image_name:
+            image_path = os.path.join(
+                "olrox_all_icons", "images", image_name
+            )
+
+            image = discord.File(
+                image_path,
+                filename=image_name
+            )
+
+            embed.set_thumbnail(
+                url=f"attachment://{image_name}"
+            )
+
+            await ctx.send(embed=embed, file=image)
+
+        else:
+            await ctx.send(embed=embed)
 
         try:
             await asyncio.to_thread(
@@ -520,7 +567,10 @@ async def weather(ctx, *, city: str):
             )
 
             await ctx.send(
-                file=discord.File(audio_path, filename="weather.wav")
+                file=discord.File(
+                    audio_path,
+                    filename="weather.wav"
+                )
             )
 
         except Exception as error:
@@ -529,4 +579,5 @@ async def weather(ctx, *, city: str):
 
 
 
-bot.run("theoi_your_token")
+
+bot.run("TOKEN_HERE")
