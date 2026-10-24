@@ -6,6 +6,7 @@ import asyncio
 
 import discord
 from discord.ext import commands
+import requests
 import speech_recognition as sr
 from pydub import AudioSegment
 
@@ -310,9 +311,33 @@ async def on_ready():
     print(f"We have logged in as {bot.user}")
 
 
+
+
+
 @bot.command()
 async def hello(ctx):
-    await ctx.send(f"Hi! I am a bot {bot.user}!")
+
+    embed = discord.Embed(
+        title="𝌺 AN UNEXPECTED VISITOR",
+        description=(
+            "**Well, well... Look who decided to show up.**\n\n"
+            "Welcome to my domain, mortal.\n"
+            "Try not to disappoint me. Again."
+        ),
+        color=0x74459A
+    )
+
+    image = discord.File("olrox.gif", filename="olrox.gif")
+
+    embed.set_thumbnail(url="attachment://olrox.gif")
+
+    embed.set_footer(
+        text="THE REAL OLROX • Eternally unimpressed"
+    )
+
+    await ctx.send(embed=embed, file=image)
+
+
 
 
 @bot.command()
@@ -339,7 +364,7 @@ async def say(ctx, *, text):
         await ctx.send("Bro, that's too much text!")
         return
 
-    await ctx.send("Wait, I'm learning how to speak...")
+    await ctx.send("Wait, I'm learning how to speak because im a goddamned robot...")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         audio_path = os.path.join(temp_dir, "robot.wav")
@@ -355,5 +380,153 @@ async def say(ctx, *, text):
             print("Voice error:", error)
             await ctx.send("My voice is broken, dude. try again when you pay me.")
 
+def get_me_weather(city : str):
+    base_url = f"https://wttr.in/{city}?format=%C+%t"
+    response = requests.get(base_url)
 
-bot.run("MY_TOKEN")
+    #status
+    if response.status_code == 200:
+        return response.text.strip()
+    
+    else:
+        return "There was an error retrieving the weather information."
+
+
+def get_night_weather(city: str):
+
+    base_url = f"https://wttr.in/{city}?format=%m|%S|%s"
+
+    response = requests.get(base_url, timeout=15)
+
+    if response.status_code == 200:
+        return response.text.strip()
+
+    else:
+        return None
+    
+
+moon_images = {
+    "🌑": "new_moon.png",
+    "🌒": "waxing_crescent.png",
+    "🌓": "first_quarter.png",
+    "🌔": "waxing_gibbous.png",
+    "🌕": "full_moon.png",
+    "🌖": "waning_gibbous.png",
+    "🌗": "last_quarter.png",
+    "🌘": "waning_crescent.png"
+}
+
+
+@bot.command()
+async def night(ctx, *, city: str):
+
+    climate = await asyncio.to_thread(get_night_weather, city)
+
+    if climate is None:
+        await ctx.send("The heavens refuse to answer me, mortal.")
+        return
+
+    moon, sunrise, sunset = climate.split("|")
+
+    phrases = [
+        "The sun is finally leaving. I can visit Mizrak.",
+        "Another night, and im quite hungry.",
+        "The darkness approaches.",
+        "I suppose even the heavens have their schedule."
+    ]
+
+    phrase = random.choice(phrases)
+
+    embed = discord.Embed(
+        title="─── NIGHTS FORECAST ───",
+        description=(
+            f"**Location:** {city}\n\n"
+            f"**Moon phase:** {moon}\n"
+            f"**Sunrise:** {sunrise}\n"
+            f"**Sunset:** {sunset}\n\n"
+            f"*\"{phrase}\"*"
+        ),
+        color=0x74459A
+    )
+
+    embed.set_footer(
+        text="THE REAL OLROX • Night Report For You, Dumbass"
+    )
+
+    image_name = moon_images.get(moon)
+
+    if image_name:
+        image_path = os.path.join(
+            "olrox_all_icons", "images", image_name
+        )
+
+        image = discord.File(
+            image_path,
+            filename=image_name
+        )
+
+        embed.set_thumbnail(
+            url=f"attachment://{image_name}"
+        )
+
+        await ctx.send(embed=embed, file=image)
+
+    else:
+        await ctx.send(embed=embed)
+
+
+
+@bot.command()
+async def weather(ctx, *, city: str):
+
+    climate = await asyncio.to_thread(get_me_weather, city)
+
+    phrases = [
+        "Even the weather is more interesting than you.",
+        "How delightful. Another day among mortals.",
+        "I suppose you needed me to look at the sky for you.",
+        "The heavens have spoken. Try to keep up.",
+        "Centuries of wisdom, wasted on weather reports."
+    ]
+
+    phrase = random.choice(phrases)
+
+    embed = discord.Embed(
+        title="─── THE FORECAST ───",
+        description=(
+            f"**Location:** {city}\n"
+            f"**Weather:** {climate}\n\n"
+            f"*\"{phrase}\"*"
+        ),
+        color=0x74459A
+    )
+
+    embed.set_footer(
+        text="THE REAL OLROX • Boring Weather Report"
+    )
+
+    await ctx.send(embed=embed)
+
+    #MENSAJILLO DE VOCECILLA
+    message = f"The weather in {city} is {climate}"
+    spoken_message = message.replace("°C", " degrees Celsius")
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        audio_path = os.path.join(temp_dir, "weather.wav")
+
+        try:
+            await asyncio.to_thread(
+                create_voice, spoken_message, audio_path
+            )
+
+            await ctx.send(
+                file=discord.File(audio_path, filename="weather.wav")
+            )
+
+        except Exception as error:
+            print("Voice error:", error)
+            await ctx.send("My voice is broken, mortal.")
+
+
+
+bot.run("theoi_your_token")
