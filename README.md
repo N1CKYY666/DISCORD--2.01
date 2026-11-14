@@ -1,252 +1,152 @@
-# The Real Olrox — Discord Bot
+# 🦇 The Real Olrox — Discord Bot
 
-A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English learning, speech recognition, text-to-speech, weather information, and a very sarcastic vampire personality. xd
+*A sarcastic vampire with a suspicious amount of Python knowledge.*
 
-The project was developed as a Python learning exercise, exploring Discord commands, image classification, audio processing, external APIs, dictionaries, and customized Discord embeds. Nothing serious 
+A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English practice, speech recognition, text-to-speech, weather information, and a rather dramatic vampire personality.
+
+Originally developed as a Python learning exercise, the project has evolved from one chaotic script into a modular Discord bot using **Cogs**.
+
+Nothing serious. Just a vampire learning software engineering. xd
 
 ## Features
 
-### `$hello` — An Unexpected Visitor
+| Command | Description |
+|---|---|
+| `$hello` | Welcomes mortals with a sarcastic message and an animated GIF |
+| `$heh` | Repeats "he" a specified number of times |
+| `$fact` | Shares a fact |
+| `$say` | Converts text into a WAV audio attachment |
+| `$checking` | Classifies images using a trained machine learning model |
+| `$english` | Starts an interactive English pronunciation game |
+| `$weather` | Displays current weather information |
+| `$night` | Displays moon phase, sunrise, and sunset information |
+| `$history` | Shares historical information |
 
-Displays a personalized greeting using a purple Discord embed and an animated Olrox GIF thumbnail.
+## 🗣️ English Learning Game
 
-**Example:**
-```text
-$hello
-```
+The `$english` command allows users to practice pronunciation by sending recorded audio messages.
 
-The bot welcomes the user with a sarcastic message inspired by Olrox's personality.
-
-### `$heh` — Laughing Command
-
-Repeats `"he"` a specified number of times.
-
-**Example:**
-```text
-$heh 5
-```
-
-### `$say` — Text-to-Speech
-
-Converts a user's text into a WAV audio file using `pyttsx3`.
-
-**Example:**
-```text
-$say Hello, mortal.
-```
-
-- Supports messages up to 200 characters.
-- Generates audio using a configured voice and speaking rate.
-- Sends the audio file directly to the Discord text channel.
-
-The bot does not automatically join voice channels.
-
-### `$checking` — Image Classification
-
-Uses a machine learning model trained with Google Teachable Machine and Keras to classify uploaded images.
-
-**Example:**
-```text
-$checking
-```
-
-Attach an image to the command.
-
-The bot:
-
-1. Downloads the attached image.
-2. Processes it using the trained model.
-3. Identifies whether the image belongs to `RESTRICTED` or `NOT RESTRICTED`.
-4. Displays the predicted class, probability, and confidence description.
-5. Generates a spoken warning or confirmation using `pyttsx3`.
-
-**Example result:**
-```text
-Zone: RESTRICTED
-Probability: 98.5%
-Confidence: High confidence
-
-WARNING: This is a restricted area!
-```
-
-**Disclaimer:** This classification model is experimental and must not be used as a real security system.
-
-### `$english` — English Learning Game
-
-An interactive game that allows users to practice English pronunciation through recorded audio.
-
-**Example:**
-```text
-$english
-```
-
-The bot displays five options:
-
-| Option | Level | Activity | Points per correct answer |
+| Option | Level | Activity | Points per answer |
 |---|---|---|---|
 | 1 | Words | Repeat English words | 10 |
 | 2 | Sentences | Repeat short sentences | 20 |
-| 3 | Translate | Translate Spanish words into English | 30 |
+| 3 | Translate | Translate Spanish into English | 30 |
 | 4 | Challenge | Repeat longer English sentences | 40 |
 | 5 | Play All | Complete all four levels | Up to 300 total |
 
-Each level randomly selects three questions.
+Each level contains three randomly selected questions.
 
-The bot uses `SpeechRecognition` to transcribe audio and compare the recognized text against the expected answer.
+The game uses Google Speech Recognition to transcribe recordings and compares the recognized text with the expected answers.
 
-**Maximum score:** 300 points.
+Custom GIFs accompany the game, because Olrox apparently cannot teach English without being dramatic.
 
-### `$weather` — The Mortal Forecast
+## 🧠 Machine Learning
 
-Retrieves current weather information from the `wttr.in` service.
+The `$checking` command uses a model trained with **Google Teachable Machine** and Keras.
 
-**Example:**
-```text
-$weather London
-```
+The bot processes uploaded images and predicts one of two classes:
 
-The bot displays:
+- `RESTRICTED`
+- `NOT RESTRICTED`
 
-- Requested location
-- Current weather condition
-- Temperature
-- A randomly selected sarcastic comment
-- A custom weather thumbnail when a matching icon is available
+It displays the predicted class, confidence score, and confidence description, and can generate an audio response.
 
-Weather results are displayed in a purple Discord embed.
+**Disclaimer:** This is an experimental educational model, not a real security system.
 
-The bot also uses `pyttsx3` to generate an audio report.
+## 🌦️ Weather and Moon Phases
 
-**Example output:**
-```text
-─── THE MORTAL FORECAST ───
+The `$weather` and `$night` commands retrieve information from `wttr.in`.
 
-Location: London
-Weather: Partly Cloudy
-Temperature: +8°C
+Weather reports include temperature, weather conditions, custom thumbnails, and sarcastic commentary.
 
-"Centuries of wisdom, wasted on weather reports."
-```
+Night reports include the moon phase, sunrise, and sunset.
 
-Weather conditions are associated with local PNG images through a Python dictionary.
+Custom PNG icons represent weather conditions and the eight principal moon phases.
 
-### `$night` — The Vampire's Forecast
+Because even immortal vampires need to know when the sun is coming up.
 
-Retrieves astronomical information from `wttr.in`.
+## 🔊 Audio Features
 
-**Example:**
-```text
-$night London
-```
+The bot uses:
 
-The command displays:
+- **pyttsx3** for text-to-speech
+- **SpeechRecognition** for speech-to-text
+- **pydub** for audio conversion
+- **FFmpeg** for processing audio formats
+- **asyncio** for asynchronous execution
 
-- Current moon phase
-- Sunrise time
-- Sunset time
-- A sarcastic comment inspired by Olrox
-- A custom moon-phase thumbnail
+The bot generates audio attachments rather than joining Discord voice channels.
 
-**Example output:**
-```text
-─── NIGHTS FORECAST ───
-
-Location: London
-Moon phase: 🌕
-Sunrise: 07:39:27
-Sunset: 17:49:43
-
-"The sun is finally leaving. I can visit Mizrak."
-```
-
-The bot identifies the moon phase returned by `wttr.in` and selects the corresponding PNG using a Python dictionary.
-
-Eight moon phases are supported:
-
-1. New Moon
-2. Waxing Crescent
-3. First Quarter
-4. Waxing Gibbous
-5. Full Moon
-6. Waning Gibbous
-7. Last Quarter
-8. Waning Crescent
-
-## Custom Discord Embeds
-
-The bot uses `discord.Embed()` to display customized messages.
-
-Visual elements include:
-
-- Purple accent color (`#74459A`)
-- Decorative titles using `───`
-- Organized weather and astronomical information
-- Custom thumbnails
-- Sarcastic descriptions and footers
-
-The visual style is inspired by Olrox's appearance and personality in *Castlevania: Nocturne*.
-
-## Custom Icons
-
-The project includes custom PNG icons designed to match the bot's visual identity.
-
-Icons are stored in:
+## 🏰 Project Structure
 
 ```text
-olrox_all_icons/
-    images/
-        new_moon.png
-        waxing_crescent.png
-        first_quarter.png
-        waxing_gibbous.png
-        full_moon.png
-        waning_gibbous.png
-        last_quarter.png
-        waning_crescent.png
-        ...
+The-Real-Olrox/
+│
+├── main.py
+├── config.py
+├── README.md
+├── .gitignore
+│
+├── commands/
+│   ├── __init__.py
+│   ├── general.py
+│   ├── history.py
+│   ├── voice.py
+│   ├── weather.py
+│   ├── images.py
+│   └── english.py
+│
+├── models/
+│   ├── __init__.py
+│   ├── model.py
+│   ├── keras_model.places.h5
+│   └── labels.places.txt
+│
+└── assets/
+    ├── gifs/
+    │   ├── olrox.gif
+    │   ├── nice.gif
+    │   ├── turning.gif
+    │   ├── side_eye.gif
+    │   ├── shine.gif
+    │   └── still.gif
+    │
+    └── icons/
+        ├── sunny.png
+        ├── rain.png
+        ├── new_moon.png
+        └── ...
 ```
 
-Additional icons represent weather conditions such as sunny, cloudy, rainy, snowy, and windy weather.
+**Note:** `config.py` is used locally and should not be uploaded if it contains private configuration or credentials.
 
-Python dictionaries connect API responses to image filenames. The bot attaches the matching PNG and displays it using `embed.set_thumbnail()`.
+### Modular Architecture
 
-If no matching icon is available, the embed can still be displayed without a thumbnail.
+The bot uses the `discord.py` Cogs system to organize its commands into separate modules.
 
-## Speech Recognition
+| Module | Responsibility |
+|---|---|
+| `main.py` | Bot initialization and extension loading |
+| `general.py` | Greetings, laughter, and facts |
+| `history.py` | Historical information |
+| `voice.py` | Text-to-speech generation |
+| `weather.py` | Weather and astronomical information |
+| `images.py` | Machine learning image classification |
+| `english.py` | English learning game and speech recognition |
+| `models/model.py` | Image preprocessing and model inference |
 
-The English learning game uses:
+This architecture makes the project easier to maintain, debug, and expand.
 
-- `SpeechRecognition` for speech-to-text conversion
-- `pydub` for audio conversion
-- Google Speech Recognition for transcription
-- FFmpeg for processing supported audio formats
+And prevents `main.py` from becoming a 900-year-old monster again.
 
-The bot downloads the user's audio attachment, converts it to WAV, and transcribes the recording.
+## 🛠️ Technologies
 
-The recognized text is compared with the expected answer to calculate the score.
-
-## Text-to-Speech
-
-The bot uses `pyttsx3` for speech synthesis.
-
-The `create_voice()` function configures the voice, speaking rate, and volume before saving the generated audio to a WAV file.
-
-Text-to-speech is currently used by:
-
-- `$say`
-- `$checking`
-- `$weather`
-
-Audio generation is executed using `asyncio.to_thread()` to avoid blocking the Discord event loop while the synchronous speech engine is running.
-
-## Technologies
-
-- Python
+- Python 3.11
 - discord.py
-- Google Teachable Machine
 - TensorFlow / Keras
-- Pillow
+- Google Teachable Machine
 - NumPy
+- Pillow
 - SpeechRecognition
 - pydub
 - FFmpeg
@@ -254,7 +154,9 @@ Audio generation is executed using `asyncio.to_thread()` to avoid blocking the D
 - Requests
 - wttr.in
 
-## Installation
+## ⚙️ Installation
+
+Clone or download the repository.
 
 Install the required Python packages:
 
@@ -262,86 +164,73 @@ Install the required Python packages:
 pip install discord.py tensorflow pillow numpy SpeechRecognition pydub pyttsx3 requests
 ```
 
-Install FFmpeg separately and make sure it is available on your system's PATH for audio conversion.
+Install FFmpeg separately and ensure it is available on your system's PATH.
 
-The image classification feature also requires the trained Keras model and its labels file.
+The machine learning feature requires the trained `.h5` model and its corresponding labels file.
 
-## Configuration
+### Discord Configuration
 
-1. Create a Discord application and bot in the Discord Developer Portal.
+1. Create a bot in the Discord Developer Portal.
 2. Enable the Message Content Intent.
-3. Invite the bot to your server with the necessary permissions.
-4. Add the trained image classification model and labels.
-5. Place the custom icons in the expected folder.
-6. Configure the Discord bot token securely.
-7. Run the Python script.
+3. Invite the bot to a Discord server with the necessary permissions.
+4. Configure the `DISCORD_TOKEN` environment variable.
+5. Verify that the required models and assets are present.
+6. Run:
 
-For improved security, the bot token should be loaded from an environment variable instead of being written directly into the source code.
-
-## Example Commands
-
-```text
-$hello
-$heh 5
-$say Good evening, mortal.
-$checking
-$english
-$weather London
-$night London
+```bash
+python main.py
 ```
 
-## Project Structure
+**Security:** Never publish Discord bot tokens, passwords, or private API credentials.
 
-```text
-The-Real-Olrox/
-│
-├── main.py
-├── model.py
-├── keras_model.places.h5
-├── labels.places.txt
-├── olrox.gif
-├── README.md
-│
-└── olrox_all_icons/
-    └── images/
-        ├── new_moon.png
-        ├── waxing_crescent.png
-        ├── first_quarter.png
-        ├── waxing_gibbous.png
-        ├── full_moon.png
-        ├── waning_gibbous.png
-        ├── last_quarter.png
-        ├── waning_crescent.png
-        └── other_weather_icons.png
-```
+## 🎨 Visual Identity
 
-The final weather icon filenames should match the names referenced in the Python dictionary.
+The bot uses customized Discord embeds featuring:
 
-## Learning Objectives
+- Purple accent color (`#74459A`)
+- Animated Olrox GIFs
+- Weather and moon-phase icons
+- Decorative separators
+- Sarcastic messages and dramatic responses
 
-This project demonstrates practical applications of:
+The visual identity is inspired by Olrox from *Castlevania: Nocturne*.
+
+## 📚 Learning Objectives
+
+This project explores:
 
 - Python functions, loops, conditionals, and dictionaries
-- Asynchronous Discord commands
-- External HTTP requests and API responses
+- Object-oriented programming and Discord Cogs
+- Asynchronous programming with `asyncio`
+- External APIs and HTTP requests
 - Machine learning inference
 - Image processing
-- Audio recording and conversion
-- Speech recognition
-- Speech synthesis
-- Temporary file management
-- Customized Discord embeds
-- File paths and asset management
+- Speech recognition and synthesis
+- Audio conversion
+- File and directory management
+- Error handling
+- Code organization and PEP 8 conventions
+- GitHub project documentation
 
-## Limitations
+## ⚠️ Limitations
 
-- Weather information depends on the availability and accuracy of `wttr.in`.
-- Some weather conditions may not have a matching custom thumbnail.
-- Speech recognition accuracy depends on audio quality and pronunciation.
-- Text-to-speech generates audio attachments rather than live voice-channel speech.
-- Image classification results are predictions and may be inaccurate.
-- The bot requires a valid Discord token and its external dependencies.
+- Weather information depends on `wttr.in`.
+- Speech recognition accuracy varies with audio quality.
+- Text-to-speech creates audio files, not live voice-channel audio.
+- Image classification predictions may be inaccurate.
+- Some features require external software or services.
+- The bot requires a valid Discord token to run.
 
 ---
 
-*Constantly fighting for the 1st place*
+### 🦇 Final Words
+
+What started as a simple Python exercise became a Discord bot with machine learning, audio processing, custom graphics, interactive games, and modular architecture.
+
+There were errors. There were exceptions. There were questionable decisions.
+
+But the vampire survived.
+
+*Constantly fighting for the 1st place.*
+
+**The Real Olrox — because apparently learning Python wasn't dramatic enough.**
