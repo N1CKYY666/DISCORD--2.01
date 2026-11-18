@@ -76,7 +76,7 @@ class Weather(commands.Cog):
             embed = discord.Embed(
                 title="─── THE SILENT SKIES ───",
                 description=(
-                    "The skies refuse to answer me, mortal.\n\n"
+                    "The skies refuse to answer me.\n\n"
                     "*How terribly inconvenient.*"
                 ),
                 color=0x74459A
@@ -92,9 +92,9 @@ class Weather(commands.Cog):
 
         phrases = [
             "Even the weather is more interesting than you.",
-            "Centuries of wisdom, wasted on weather reports.",
+            "My time, wasted on weather reports.",
             "I suppose you needed me to look at the sky for you.",
-            "How delightful. Another day among mortals."
+            "How delightful."
         ]
 
         phrase = random.choice(phrases)
@@ -112,7 +112,7 @@ class Weather(commands.Cog):
 
         embed.set_footer(
             text=(
-                "THE REAL OLROX • "
+                "THE REAL OLROX •   Richter's childhood nightmare. "
                 "Weather Report... Unfortunately."
             )
         )
@@ -206,7 +206,7 @@ class Weather(commands.Cog):
             )
 
             embed.set_footer(
-                text="THE REAL OLROX • Eternally unimpressed"
+                text="THE REAL OLROX • Tired of the same old night."
             )
 
             await ctx.send(embed=embed)
