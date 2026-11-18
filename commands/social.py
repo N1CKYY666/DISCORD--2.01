@@ -41,7 +41,7 @@ class Social(commands.Cog):
             return
 
         embed = discord.Embed(
-            title="✦ ───────  AN ETERNAL WELCOME ─────── ✦",
+            title="✦ ───────  WELCOME ─────── ✦",
             description=(
                 "Oh? Another member has arrived.\n\n"
                 f"Welcome to my domain, {member.mention}.\n"
