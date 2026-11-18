@@ -1,5 +1,7 @@
 
+import random
 import sqlite3
+import time
 from pathlib import Path
 
 import discord
@@ -60,12 +62,30 @@ def get_experience(guild_id, user_id):
         return result[0]
 
 
+def get_leaderboard(guild_id):
+    """Retrieve the ten members with the most XP."""
+    with sqlite3.connect(DB_PATH) as connection:
+        cursor = connection.execute(
+            """
+            SELECT user_id, xp
+            FROM experience
+            WHERE guild_id = ?
+            ORDER BY xp DESC, user_id ASC
+            LIMIT 10
+            """,
+            (guild_id,)
+        )
+
+        return cursor.fetchall()
+
+
 class Levels(commands.Cog):
     """Manage experience and ranks."""
 
     def __init__(self, bot):
         self.bot = bot
         create_database()
+        self.xp_cooldowns = {}
 
     @commands.command(name="rank")
     @commands.guild_only()
@@ -113,6 +133,171 @@ class Levels(commands.Cog):
         )
 
         await ctx.send(embed=embed, files=[image, divider])
+
+    @commands.command(name="addxp")
+    @commands.guild_only()
+    @commands.has_permissions(administrator=True)
+    async def addxp(
+        self,
+        ctx,
+        member: discord.Member,
+        amount: int
+    ):
+        """Give experience points to a server member."""
+        if amount <= 0:
+            await ctx.send(
+                "Experience must be greater than zero."
+            )
+            return
+
+        add_experience(
+            ctx.guild.id,
+            member.id,
+            amount
+        )
+
+        total_xp = get_experience(
+            ctx.guild.id,
+            member.id
+        )
+
+        embed = discord.Embed(
+            title="✦ ───── EXPERIENCE GRANTED ───── ✦",
+            description=(
+                f"☾ **Member:** {member.mention}\n"
+                f"☾ **XP added:** +{amount}\n"
+                f"☾ **Total experience:** {total_xp} XP\n\n"
+                "*A little progress. How fascinating.*"
+            ),
+            color=0x74459A
+        )
+
+        image = discord.File(
+            "assets/gifs/olrox2.gif",
+            filename="olrox2.gif"
+        )
+
+        divider = discord.File(
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
+        )
+
+        embed.set_thumbnail(
+            url="attachment://olrox2.gif"
+        )
+
+        embed.set_image(
+            url="attachment://divider1.gif"
+        )
+
+        embed.set_footer(
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
+        )
+
+        await ctx.send(
+            embed=embed,
+            files=[image, divider]
+        )
+
+    @commands.command(name="leaderboard", aliases=["top"])
+    @commands.guild_only()
+    async def leaderboard(self, ctx):
+        """Display the ten members with the most XP."""
+        ranking = get_leaderboard(ctx.guild.id)
+
+        if not ranking:
+            description = (
+                "No experience has been recorded yet.\n\n"
+                "*How terribly disappointing.*"
+            )
+        else:
+            positions = []
+
+            for position, (user_id, xp) in enumerate(
+                ranking, start=1
+            ):
+                member = ctx.guild.get_member(user_id)
+
+                if member:
+                    name = discord.utils.escape_markdown(
+                        member.display_name
+                    )
+                else:
+                    name = f"User {user_id}"
+
+                positions.append(
+                    f"☾ **{position}.** {name} — **{xp} XP**"
+                )
+
+            description = "\n".join(positions)
+
+        embed = discord.Embed(
+            title="✦ ───── LEADERBOARD ───── ✦",
+            description=description,
+            color=0x74459A
+        )
+
+        image = discord.File(
+            "assets/gifs/laugh.gif",
+            filename="laugh.gif"
+        )
+
+        divider = discord.File(
+            "assets/gifs/divider5.gif",
+            filename="divider5.gif"
+        )
+
+        embed.set_thumbnail(
+            url="attachment://laugh.gif"
+        )
+
+        embed.set_image(
+            url="attachment://divider5.gif"
+        )
+
+        embed.set_footer(
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
+        )
+
+        await ctx.send(
+            embed=embed,
+            files=[image, divider]
+        )
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        """Award XP for regular server activity."""
+        if message.author.bot:
+            return
+
+        if message.guild is None:
+            return
+
+        if message.content.startswith("$"):
+            return
+
+        guild_id = message.guild.id
+        user_id = message.author.id
+        user_key = (guild_id, user_id)
+
+        current_time = time.monotonic()
+        last_message = self.xp_cooldowns.get(user_key, 0)
+
+        if current_time - last_message < 60:
+            return
+
+        amount = random.randint(5, 15)
+
+        add_experience(
+            guild_id,
+            user_id,
+            amount
+        )
+
+        self.xp_cooldowns[user_key] = current_time
+
 
 
 async def setup(bot):
