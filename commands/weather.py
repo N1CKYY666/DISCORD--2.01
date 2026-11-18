@@ -12,12 +12,9 @@ from commands.voice import create_voice
 
 def get_me_weather(city: str):
     base_url = f"https://wttr.in/{city}?format=%C|%t"
-
     response = requests.get(base_url, timeout=15)
-
     if response.status_code == 200:
         return response.text.strip()
-
     return None
 
 
@@ -38,12 +35,9 @@ weather_images = {
 
 def get_night_weather(city: str):
     base_url = f"https://wttr.in/{city}?format=%m|%S|%s"
-
     response = requests.get(base_url, timeout=15)
-
     if response.status_code == 200:
         return response.text.strip()
-
     return None
 
 
@@ -63,30 +57,44 @@ class Weather(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def send_styled_embed(self, ctx, embed, image_name=None):
+        """Send an embed with its existing icon and divider2.gif."""
+        files = []
+        if image_name:
+            image_path = os.path.join("assets", "icons", image_name)
+            if os.path.isfile(image_path):
+                files.append(discord.File(image_path, filename=image_name))
+                embed.set_thumbnail(url=f"attachment://{image_name}")
+
+        divider_path = os.path.join("assets", "gifs", "divider2.gif")
+        files.append(discord.File(divider_path, filename="divider2.gif"))
+        embed.set_image(url="attachment://divider2.gif")
+        embed.set_footer(
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
+        )
+        await ctx.send(embed=embed, files=files)
+
     @commands.command()
     async def weather(self, ctx, *, city: str):
         try:
-            climate = await asyncio.to_thread(
-                get_me_weather, city
-            )
+            climate = await asyncio.to_thread(get_me_weather, city)
         except requests.RequestException:
             climate = None
 
         if not climate or "|" not in climate:
             embed = discord.Embed(
-                title="─── THE SILENT SKIES ───",
+                title="✦ ───── THE SILENT SKIES ───── ✦",
                 description=(
                     "The skies refuse to answer me.\n\n"
                     "*How terribly inconvenient.*"
                 ),
                 color=0x74459A
             )
-
-            await ctx.send(embed=embed)
+            await self.send_styled_embed(ctx, embed)
             return
 
         condition, temperature = climate.split("|", 1)
-
         condition = condition.strip()
         temperature = temperature.strip()
 
@@ -96,11 +104,10 @@ class Weather(commands.Cog):
             "I suppose you needed me to look at the sky for you.",
             "How delightful."
         ]
-
         phrase = random.choice(phrases)
 
         embed = discord.Embed(
-            title="─── THE FORECAST ───",
+            title="✦ ───── THE FORECAST ───── ✦",
             description=(
                 f"**Location:** {city}\n\n"
                 f"**Weather:** {condition}\n"
@@ -110,110 +117,51 @@ class Weather(commands.Cog):
             color=0x74459A
         )
 
-        embed.set_footer(
-            text=(
-                "THE REAL OLROX •   Richter's childhood nightmare. "
-                "Weather Report... Unfortunately."
-            )
-        )
+        image_name = weather_images.get(condition.lower())
+        await self.send_styled_embed(ctx, embed, image_name)
 
-        image_name = weather_images.get(
-            condition.lower()
-        )
-
-        message = (
-            f"The weather in {city} is "
-            f"{condition}, {temperature}"
-        )
-
-        spoken_message = message.replace(
-            "°C", " degrees Celsius"
-        )
-
-        if image_name:
-            image_path = os.path.join(
-                "assets",
-                "icons",
-                image_name
-            )
-
-            if os.path.isfile(image_path):
-                image = discord.File(
-                    image_path,
-                    filename=image_name
-                )
-
-                embed.set_thumbnail(
-                    url=f"attachment://{image_name}"
-                )
-
-                await ctx.send(embed=embed, file=image)
-            else:
-                await ctx.send(embed=embed)
-        else:
-            await ctx.send(embed=embed)
+        message = f"The weather in {city} is {condition}, {temperature}"
+        spoken_message = message.replace("°C", " degrees Celsius")
 
         with tempfile.TemporaryDirectory() as temp_dir:
-            audio_path = os.path.join(
-                temp_dir, "weather.wav"
-            )
-
+            audio_path = os.path.join(temp_dir, "weather.wav")
             try:
-                await asyncio.to_thread(
-                    create_voice,
-                    spoken_message,
-                    audio_path
-                )
-
+                await asyncio.to_thread(create_voice, spoken_message, audio_path)
                 await ctx.send(
-                    file=discord.File(
-                        audio_path,
-                        filename="weather.wav"
-                    )
+                    file=discord.File(audio_path, filename="weather.wav")
                 )
-
             except Exception as error:
                 print("Voice error:", error)
-
                 error_embed = discord.Embed(
-                    title="─── AN UNFORTUNATE SILENCE ───",
+                    title="✦ ───── AN UNFORTUNATE SILENCE ───── ✦",
                     description=(
-                        "My voice is broken, mortal.\n\n"
+                        "My voice is broken.\n\n"
                         "*A temporary inconvenience.*"
                     ),
                     color=0x74459A
                 )
-
-                await ctx.send(embed=error_embed)
+                await self.send_styled_embed(ctx, error_embed)
 
     @commands.command()
     async def night(self, ctx, *, city: str):
         try:
-            climate = await asyncio.to_thread(
-                get_night_weather, city
-            )
+            climate = await asyncio.to_thread(get_night_weather, city)
         except requests.RequestException:
             climate = None
 
         if not climate or climate.count("|") != 2:
             embed = discord.Embed(
-                title="─── THE SILENT HEAVENS ───",
+                title="✦ ───── THE SILENT HEAVENS ───── ✦",
                 description=(
-                    "The heavens refuse to answer me, mortal.\n\n"
+                    "The heavens refuse to answer me.\n\n"
                     "*How disappointing.*"
                 ),
                 color=0x74459A
             )
-
-            embed.set_footer(
-                text="THE REAL OLROX • Tired of the same old night."
-            )
-
-            await ctx.send(embed=embed)
+            await self.send_styled_embed(ctx, embed)
             return
 
         moon, sunrise, sunset = climate.split("|")
-
         moon = moon.strip()
         sunrise = sunrise.strip()
         sunset = sunset.strip()
@@ -224,11 +172,10 @@ class Weather(commands.Cog):
             "The darkness approaches.",
             "I suppose even the heavens have their schedule."
         ]
-
         phrase = random.choice(phrases)
 
         embed = discord.Embed(
-            title="─── NIGHTS FORECAST ───",
+            title="✦ ───── NIGHTS FORECAST ───── ✦",
             description=(
                 f"**Location:** {city}\n\n"
                 f"**Moon phase:** {moon}\n"
@@ -238,34 +185,8 @@ class Weather(commands.Cog):
             ),
             color=0x74459A
         )
-
-        embed.set_footer(
-            text="THE REAL OLROX • Night Report For You, Dumbass"
-        )
-
         image_name = moon_images.get(moon)
-
-        if image_name:
-            image_path = os.path.join(
-                "assets",
-                "icons",
-                image_name
-            )
-
-            if os.path.isfile(image_path):
-                image = discord.File(
-                    image_path,
-                    filename=image_name
-                )
-
-                embed.set_thumbnail(
-                    url=f"attachment://{image_name}"
-                )
-
-                await ctx.send(embed=embed, file=image)
-                return
-
-        await ctx.send(embed=embed)
+        await self.send_styled_embed(ctx, embed, image_name)
 
 
 async def setup(bot):
