@@ -1,8 +1,13 @@
-
 from pathlib import Path
 
 import discord
 from discord.ext import commands
+
+GIF_PATH = (
+    Path(__file__).resolve().parent.parent
+    / "assets" / "gifs" / "divider1.gif"
+)
+FOOTER_TEXT = "THE REAL OLROX • Richter's childhood nightmare."
 
 
 class Social(commands.Cog):
@@ -10,6 +15,19 @@ class Social(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    def decorate_embed(self, embed):
+        """Apply the standard Olrox divider and footer."""
+        embed.set_image(url="attachment://divider1.gif")
+        embed.set_footer(
+            text=FOOTER_TEXT,
+            icon_url=self.bot.user.display_avatar.url
+        )
+        return embed
+
+    @staticmethod
+    def divider_file():
+        return discord.File(GIF_PATH, filename="divider1.gif")
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
@@ -31,22 +49,12 @@ class Social(commands.Cog):
             ),
             color=0x74459A
         )
-
         embed.set_thumbnail(url=member.display_avatar.url)
-
-        gif_path = (
-            Path(__file__).resolve().parent.parent
-            / "assets" / "gifs" / "divider1.gif"
-        )
-
-        embed.set_image(url="attachment://divider1.gif")
-
-        await channel.send(
-            embed=embed,
-            file=discord.File(gif_path, filename="divider1.gif")
-        )
+        self.decorate_embed(embed)
+        await channel.send(embed=embed, file=self.divider_file())
 
     @commands.command(name="testwelcome")
+    @commands.guild_only()
     @commands.has_permissions(administrator=True)
     async def test_welcome(self, ctx):
         """Test the welcome message without a new member."""
@@ -73,20 +81,9 @@ class Social(commands.Cog):
             ),
             color=0x74459A
         )
-
         embed.set_thumbnail(url=member.display_avatar.url)
-
-        gif_path = (
-            Path(__file__).resolve().parent.parent
-            / "assets" / "gifs" / "divider1.gif"
-        )
-
-        embed.set_image(url="attachment://divider1.gif")
-
-        await channel.send(
-            embed=embed,
-            file=discord.File(gif_path, filename="divider1.gif")
-        )
+        self.decorate_embed(embed)
+        await channel.send(embed=embed, file=self.divider_file())
 
     @commands.command(name="testgoodbye")
     @commands.guild_only()
@@ -102,65 +99,53 @@ class Social(commands.Cog):
         if member is None:
             member = ctx.author
 
+        joined = (
+            member.joined_at.strftime("%Y-%m-%d %H:%M:%S")
+            if member.joined_at else "Unknown"
+        )
+        roles = ", ".join(
+            role.name for role in member.roles if role.name != "@everyone"
+        ) or "None"
+
         embed = discord.Embed(
             title="✦ ───── MEMBER PROFILE ───── ✦",
             description=(
                 f"☾ **Name:** {member.display_name}\n"
-                f"☾ **Joined:** {member.joined_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                f"☾ **Joined:** {joined}\n"
                 f"☾ **Created:** {member.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
-                f"☾ **Roles:** {', '.join([role.name for role in member.roles if role.name != '@everyone'])}\n"
+                f"☾ **Roles:** {roles}\n"
                 f"☾ **Status:** {member.status}\n"
                 f"☾ **Bot:** {'Yes' if member.bot else 'No'}"
             ),
             color=0x74459A
         )
-
         embed.set_thumbnail(url=member.display_avatar.url)
-
-        gif_path = (
-            Path(__file__).resolve().parent.parent
-            / "assets" / "gifs" / "divider2.gif"
-        )
-
-        embed.set_image(url="attachment://divider2 .gif")
-
-        await ctx.send(
-            embed=embed,
-            file=discord.File(gif_path, filename="divider2 .gif")
-        )
+        self.decorate_embed(embed)
+        await ctx.send(embed=embed, file=self.divider_file())
 
     @commands.command(name="server")
     @commands.guild_only()
     async def server(self, ctx):
         """Display server information."""
         guild = ctx.guild
+        owner = guild.owner.display_name if guild.owner else "Unknown"
 
         embed = discord.Embed(
             title="✦ ───── SERVER INFORMATION ───── ✦",
             description=(
                 f"☾ **Name:** {guild.name}\n"
-                f"☾ **Owner:** {guild.owner.display_name}\n"
+                f"☾ **Owner:** {owner}\n"
                 f"☾ **Created:** {guild.created_at.strftime('%Y-%m-%d %H:%M:%S')}\n"
                 f"☾ **Members:** {guild.member_count}\n"
                 f"☾ **Roles:** {len(guild.roles)}\n"
             ),
             color=0x74459A
         )
-
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
 
-        gif_path = (
-            Path(__file__).resolve().parent.parent
-            / "assets" / "gifs" / "divider3.gif"
-        )
-
-        embed.set_image(url="attachment://divider3.gif")
-
-        await ctx.send(
-            embed=embed,
-            file=discord.File(gif_path, filename="divider3.gif")
-        )
+        self.decorate_embed(embed)
+        await ctx.send(embed=embed, file=self.divider_file())
 
 
 async def setup(bot):
