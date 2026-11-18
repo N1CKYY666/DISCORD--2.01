@@ -138,7 +138,7 @@ class English(commands.Cog):
 
         for word in words[:3]:
             await ctx.send(
-                f"Repeat this word, mortal:\n**>> {word}**"
+                f"Repeat this word:\n**>> {word}**"
             )
 
             answer = await self.get_audio_answer(ctx)
@@ -150,7 +150,7 @@ class English(commands.Cog):
                 score += 10
 
                 embed = discord.Embed(
-                    title="✦ ───── WELL DONE, MORTAL ───── ✦",
+                    title="✦ ───── WELL DONE ───── ✦",
                     description=(
                         f"**Correct answer:** {word}\n"
                         "**+10 points**\n\n"
@@ -220,7 +220,7 @@ class English(commands.Cog):
 
         for sentence in sentences[:3]:
             await ctx.send(
-                f"Repeat this sentence, mortal:\n"
+                f"Repeat this sentence:\n"
                 f"**>> {sentence}**"
             )
 
@@ -300,7 +300,7 @@ class English(commands.Cog):
 
         for spanish, english in questions[:3]:
             await ctx.send(
-                f"Translate this word into English, mortal:\n"
+                f"Translate this word into English:\n"
                 f"**>> {spanish}**"
             )
 
@@ -382,7 +382,7 @@ class English(commands.Cog):
         for sentence in sentences[:3]:
             await ctx.send(
                 "─── THE FINAL CHALLENGE ───\n"
-                "Repeat this sentence, mortal:\n"
+                "Repeat this sentence:\n"
                 f"**>> {sentence}**"
             )
 
@@ -454,7 +454,7 @@ class English(commands.Cog):
         embed = discord.Embed(
             title="✦ ───── THE ENGLISH TRIAL ───── ✦",
             description=(
-                "Welcome to my English lessons, mortal.\n\n"
+                "Welcome to my English lessons, I guess.\n\n"
                 "**Choose your challenge:**\n\n"
                 "🔤 **1. Words** — 30 points\n"
                 "📖 **2. Sentences** — 60 points\n"
@@ -502,7 +502,7 @@ class English(commands.Cog):
 
         except TimeoutError:
             await ctx.send(
-                "⌛ Too slow, mortal. Try `$english` again."
+                "⌛ Too slow. Try `$english` again."
             )
             return
 
@@ -563,7 +563,7 @@ class English(commands.Cog):
             title="✦ ───── THE FINAL VERDICT ───── ✦",
             description=(
                 f"🏆 **Your final score: {total}/{maximum}**\n\n"
-                "*Perhaps we shall meet again, mortal.*"
+                "*Perhaps we shall meet again.*"
             ),
             color=0x74459A
         )
