@@ -150,7 +150,7 @@ class English(commands.Cog):
                 score += 10
 
                 embed = discord.Embed(
-                    title="─── WELL DONE, MORTAL ───",
+                    title="✦ ───── WELL DONE, MORTAL ───── ✦",
                     description=(
                         f"**Correct answer:** {word}\n"
                         "**+10 points**\n\n"
@@ -164,13 +164,13 @@ class English(commands.Cog):
                     filename="nice.gif"
                 )
 
-                embed.set_image(
+                embed.set_thumbnail(
                     url="attachment://nice.gif"
                 )
 
             else:
                 embed = discord.Embed(
-                    title="─── HOW DISAPPOINTING ───",
+                    title="✦ ───── HOW DISAPPOINTING ───── ✦",
                     description=(
                         f"**Correct answer:** {word}\n"
                         "**+0 points**\n\n"
@@ -184,18 +184,22 @@ class English(commands.Cog):
                     filename="side_eye.gif"
                 )
 
-                embed.set_image(
+                embed.set_thumbnail(
                     url="attachment://side_eye.gif"
                 )
 
-            embed.set_footer(
-                text="THE REAL OLROX • English Lessons"
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
             )
 
-            await ctx.send(
-                embed=embed,
-                file=image
+            embed.set_image(url="attachment://divider1.gif")
+            embed.set_footer(
+                text="THE REAL OLROX • Richter's childhood nightmare.",
+                icon_url=self.bot.user.display_avatar.url
             )
+
+            await ctx.send(embed=embed, files=[image, divider])
 
         await ctx.send(
             f"🏆 Your Level 1 score: **{score}/30**"
@@ -229,7 +233,7 @@ class English(commands.Cog):
                 score += 20
 
                 embed = discord.Embed(
-                    title="─── IMPRESSIVE, MORTAL ───",
+                    title="✦ ───── IMPRESSIVE ───── ✦",
                     description=(
                         f"**Correct answer:** {sentence}\n"
                         "**+20 points**\n\n"
@@ -242,7 +246,7 @@ class English(commands.Cog):
 
             else:
                 embed = discord.Embed(
-                    title="─── WHAT WAS THAT? ───",
+                    title="✦ ───── WHAT WAS THAT? ───── ✦",
                     description=(
                         f"**Correct answer:** {sentence}\n"
                         "**+0 points**\n\n"
@@ -258,18 +262,22 @@ class English(commands.Cog):
                 filename=image_name
             )
 
-            embed.set_image(
+            embed.set_thumbnail(
                 url=f"attachment://{image_name}"
             )
 
-            embed.set_footer(
-                text="THE REAL OLROX • English Lessons"
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
             )
 
-            await ctx.send(
-                embed=embed,
-                file=image
+            embed.set_image(url="attachment://divider1.gif")
+            embed.set_footer(
+                text="THE REAL OLROX • Richter's childhood nightmare.",
+                icon_url=self.bot.user.display_avatar.url
             )
+
+            await ctx.send(embed=embed, files=[image, divider])
 
         await ctx.send(
             f"🏆 Your Level 2 score: **{score}/60**"
@@ -305,7 +313,7 @@ class English(commands.Cog):
                 score += 30
 
                 embed = discord.Embed(
-                    title="─── EXCELLENT TRANSLATION ───",
+                    title="✦ ───── EXCELLENT TRANSLATION ───── ✦",
                     description=(
                         f"**Spanish:** {spanish}\n"
                         f"**English:** {english}\n"
@@ -319,7 +327,7 @@ class English(commands.Cog):
 
             else:
                 embed = discord.Embed(
-                    title="─── HOW EMBARRASSING ───",
+                    title="✦ ───── HOW EMBARRASSING ───── ✦",
                     description=(
                         f"**Spanish:** {spanish}\n"
                         f"**Correct translation:** {english}\n"
@@ -336,18 +344,22 @@ class English(commands.Cog):
                 filename=image_name
             )
 
-            embed.set_image(
+            embed.set_thumbnail(
                 url=f"attachment://{image_name}"
             )
 
-            embed.set_footer(
-                text="THE REAL OLROX • English Lessons"
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
             )
 
-            await ctx.send(
-                embed=embed,
-                file=image
+            embed.set_image(url="attachment://divider1.gif")
+            embed.set_footer(
+                text="THE REAL OLROX • Richter's childhood nightmare.",
+                icon_url=self.bot.user.display_avatar.url
             )
+
+            await ctx.send(embed=embed, files=[image, divider])
 
         await ctx.send(
             f"🏆 Your Level 3 score: **{score}/90**"
@@ -383,7 +395,7 @@ class English(commands.Cog):
                 score += 40
 
                 embed = discord.Embed(
-                    title="─── MOST IMPRESSIVE ───",
+                    title="✦ ───── MOST IMPRESSIVE ───── ✦",
                     description=(
                         f"**Correct answer:** {sentence}\n"
                         "**+40 points**\n\n"
@@ -414,18 +426,22 @@ class English(commands.Cog):
                 filename=image_name
             )
 
-            embed.set_image(
+            embed.set_thumbnail(
                 url=f"attachment://{image_name}"
             )
 
-            embed.set_footer(
-                text="THE REAL OLROX • Final Challenge"
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
             )
 
-            await ctx.send(
-                embed=embed,
-                file=image
+            embed.set_image(url="attachment://divider1.gif")
+            embed.set_footer(
+                text="THE REAL OLROX • Richter's childhood nightmare.",
+                icon_url=self.bot.user.display_avatar.url
             )
+
+            await ctx.send(embed=embed, files=[image, divider])
 
         await ctx.send(
             f"🏆 Your Level 4 score: **{score}/120**"
@@ -436,7 +452,7 @@ class English(commands.Cog):
     @commands.command()
     async def english(self, ctx):
         embed = discord.Embed(
-            title="─── THE ENGLISH TRIAL ───",
+            title="✦ ───── THE ENGLISH TRIAL ───── ✦",
             description=(
                 "Welcome to my English lessons, mortal.\n\n"
                 "**Choose your challenge:**\n\n"
@@ -456,15 +472,19 @@ class English(commands.Cog):
             filename="olrox.gif"
         )
 
-        embed.set_image(
-            url="attachment://olrox.gif"
+        divider = discord.File(
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
         )
 
+        embed.set_thumbnail(url="attachment://olrox.gif")
+        embed.set_image(url="attachment://divider1.gif")
         embed.set_footer(
-            text="THE REAL OLROX • English Academy"
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
         )
 
-        await ctx.send(embed=embed, file=image)
+        await ctx.send(embed=embed, files=[image, divider])
 
         def check(message):
             return (
@@ -510,7 +530,7 @@ class English(commands.Cog):
 
         for level in selected_levels:
             transition = discord.Embed(
-                title="─── A NEW CHALLENGE ───",
+                title="✦ ───── A NEW CHALLENGE ───── ✦",
                 description=(
                     "Another trial awaits you.\n\n"
                     "*Do try to keep up.*"
@@ -523,19 +543,24 @@ class English(commands.Cog):
                 filename="turning.gif"
             )
 
-            transition.set_image(
-                url="attachment://turning.gif"
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
             )
 
-            await ctx.send(
-                embed=transition,
-                file=image
+            transition.set_thumbnail(url="attachment://turning.gif")
+            transition.set_image(url="attachment://divider1.gif")
+            transition.set_footer(
+                text="THE REAL OLROX • Richter's childhood nightmare.",
+                icon_url=self.bot.user.display_avatar.url
             )
+
+            await ctx.send(embed=transition, files=[image, divider])
 
             total += await level(ctx)
 
         result = discord.Embed(
-            title="─── THE FINAL VERDICT ───",
+            title="✦ ───── THE FINAL VERDICT ───── ✦",
             description=(
                 f"🏆 **Your final score: {total}/{maximum}**\n\n"
                 "*Perhaps we shall meet again, mortal.*"
@@ -543,11 +568,23 @@ class English(commands.Cog):
             color=0x74459A
         )
 
-        result.set_footer(
-            text="THE REAL OLROX • English Academy"
+        image = discord.File(
+            "assets/gifs/olrox.gif",
+            filename="olrox.gif"
+        )
+        divider = discord.File(
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
         )
 
-        await ctx.send(embed=result)
+        result.set_thumbnail(url="attachment://olrox.gif")
+        result.set_image(url="attachment://divider1.gif")
+        result.set_footer(
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
+        )
+
+        await ctx.send(embed=result, files=[image, divider])
 
 
 async def setup(bot):
