@@ -21,14 +21,24 @@ class Images(commands.Cog):
                 title="─── NO EVIDENCE ───",
                 description=(
                     "You expect me to analyze thin air?\n\n"
-                    "*Send an image, mortal.*"
+                    "*Send an image, idiot.*"
                 ),
                 color=0x74459A
             )
             embed.set_footer(
-                text="THE REAL OLROX • Eternally unimpressed"
+                text="THE REAL OLROX • Richter's childhood nightmare."
             )
-            await ctx.send(embed=embed)
+
+            image = discord.File(
+                "assets/gifs/mad.gif",
+                filename="mad.gif"
+            )
+
+            embed.set_thumbnail(
+                url="attachment://mad.gif"
+            )
+
+            await ctx.send(embed=embed, file=image)
             return
 
         for attachment in ctx.message.attachments:
@@ -94,10 +104,22 @@ class Images(commands.Cog):
                 )
 
                 embed.set_footer(
-                    text="THE REAL OLROX • Eternally unimpressed"
+                    text="THE REAL OLROX • Richter's childhood nightmare."
                 )
 
-                await ctx.send(embed=embed)
+                image = discord.File(
+                    "assets/gifs/side_eye.gif",
+                    filename="side_eye.gif"
+                )
+
+                embed.set_thumbnail(
+                    url="attachment://side_eye.gif"
+                )
+
+                await ctx.send(
+                    embed=embed,
+                    file=image
+                )
 
                 audio_path = os.path.join(
                     temp_dir, "warning.wav"
