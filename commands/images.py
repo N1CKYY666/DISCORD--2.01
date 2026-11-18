@@ -18,7 +18,7 @@ class Images(commands.Cog):
     async def checking(self, ctx):
         if not ctx.message.attachments:
             embed = discord.Embed(
-                title="─── NO EVIDENCE ───",
+                title="✦ ───── NO EVIDENCE ───── ✦",
                 description=(
                     "You expect me to analyze thin air?\n\n"
                     "*Send an image, idiot.*"
@@ -62,7 +62,7 @@ class Images(commands.Cog):
                     print("Image classification error:", error)
 
                     embed = discord.Embed(
-                        title="─── ANALYSIS FAILED ───",
+                        title="✦ ───── ANALYSIS FAILED ───── ✦",
                         description=(
                             "This image refuses to reveal its secrets.\n\n"
                             "*How irritating.*"
@@ -75,14 +75,14 @@ class Images(commands.Cog):
                 probability = round(probability * 100, 2)
 
                 if zone == "RESTRICTED":
-                    title = "─── RESTRICTED AREA ───"
+                    title = "✦ ───── RESTRICTED AREA ───── ✦"
                     message = "WARNING! RESTRICTED AREA!"
                     verdict = (
                         "You have entered forbidden territory.\n\n"
                         "*I suggest you reconsider your choices.*"
                     )
                 else:
-                    title = "─── ACCESS GRANTED ───"
+                    title = "✦ ───── ACCESS GRANTED ───── ✦"
                     message = (
                         "No problem detected. "
                         "This area is not restricted."
@@ -143,7 +143,7 @@ class Images(commands.Cog):
                     print("Voice error:", error)
 
                     embed = discord.Embed(
-                        title="─── AN UNFORTUNATE SILENCE ───",
+                        title="✦ ───── AN UNFORTUNATE SILENCE ───── ✦",
                         description=(
                             "My voice is broken, mortal.\n\n"
                             "*Try again later.*"
