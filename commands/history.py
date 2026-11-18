@@ -47,7 +47,7 @@ class History(commands.Cog):
         year, description = result
 
         embed = discord.Embed(
-            title="─── HISTORIAN OLROX ───",
+            title="✦ ───── HISTORY ───── ✦",
             description=(
                 f"**Year: {year}**\n\n"
                 f"{description}\n\n"
@@ -57,19 +57,29 @@ class History(commands.Cog):
         )
 
         image = discord.File(
-            "still.gif",
-            filename="still.gif"
+            "assets/gifs/snake.gif",
+            filename="snake.gif"
+        )
+
+        divider = discord.File(
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
         )
 
         embed.set_thumbnail(
-            url="attachment://still.gif"
+            url="attachment://snake.gif"
+        )
+
+        embed.set_image(
+            url="attachment://divider1.gif"
         )
 
         embed.set_footer(
-            text="THE REAL OLROX • Eternally unimpressed"
+            text="THE REAL OLROX • Richter's childhood nightmare.",
+            icon_url=self.bot.user.display_avatar.url
         )
 
-        await ctx.send(embed=embed, file=image)
+        await ctx.send(embed=embed, files=[image, divider])
 
 
 async def setup(bot):
