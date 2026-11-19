@@ -2,13 +2,13 @@
 
 *A sarcastic buddy with a suspicious amount of Python knowledge.*
 
-A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English practice, speech recognition, text-to-speech, weather information, historical facts, social interactions, and an SQLite-based experience system. Made by a teenager wo's still trying to learn 
+A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English practice, speech recognition, text-to-speech, weather information, historical facts, social interactions, and an SQLite-based experience system. Made by a teenager who's still trying to learn.
 
 Originally developed as a Python learning exercise, the project has evolved from one chaotic script into a modular Discord bot using **Cogs**.
 
 Nothing serious. Just a vampire learning software engineering. xd
 
-## ✦ Features
+## Features
 
 ### General Commands
 
@@ -48,9 +48,9 @@ Nothing serious. Just a vampire learning software engineering. xd
 
 | Command | Description |
 |---|---|
-| `$rank` | Displays your experience points |
-| `$rank @user` | Displays another member's experience |
-| `$addxp @user <amount>` | Awards experience points (administrator only) |
+| `$rank` | Displays your level, total XP, progress bar, and XP needed for the next level |
+| `$rank @user` | Displays another member's level and XP progress |
+| `$addxp @user <amount>` | Awards XP and synchronizes the member's progression role (administrator only) |
 | `$leaderboard` | Displays the top 10 members by experience |
 | `$top` | Alias for `$leaderboard` |
 
@@ -67,6 +67,29 @@ Members can earn experience points through regular server activity, while admini
 - Bot messages and commands beginning with `$` do not generate XP.
 - Experience is stored separately for each Discord server.
 - XP remains saved after the bot restarts.
+
+### Levels and Progression
+
+XP accumulates across levels. Each new level requires more total XP than the previous one. The `$rank` command shows the current level, total XP, a ten-segment progress bar, and the XP remaining until the next level.
+
+When a member earns enough XP from regular messages to reach a new level, Olrox posts a **LEVEL UP** embed with the new level, total XP, and themed animated GIFs. The administrator-only `$addxp` command updates XP and roles immediately, but does not currently send a LEVEL UP announcement.
+
+### Automatic Progression Roles
+
+| Required level | Total XP required | Role |
+|---|---:|---|
+| 5 | 700 | The Speaker |
+| 10 | 2,700 | The Forgemaster |
+| 20 | 10,450 | The Dhampir |
+| 35 | 31,450 | The Noble |
+| 50 | 63,700 | The Vampire Messiah |
+
+These thresholds follow the current `calculate_level()` function in `commands/levels.py`. XP and levels continue beyond level 50; level 50 is simply the highest configured progression role.
+
+- Only **one progression role** is kept at a time: the new role replaces the previous progression role.
+- Unrelated server roles are left unchanged.
+- Roles are synchronized when XP is awarded through eligible messages or `$addxp`.
+- The bot requires **Manage Roles** permission, and its own Discord role must be positioned above all progression roles.
 
 ### SQLite Database
 
@@ -146,7 +169,7 @@ Custom PNG icons represent weather conditions and the eight principal moon phase
 
 Because even a vampire needs to know when the sun is coming up.
 
-## 🏰 Social Interactions
+## Social Interactions
 
 The `social.py` Cog handles server events and member information.
 
@@ -174,7 +197,7 @@ The `$profile` command displays information such as:
 
 The `$server` command provides information about the server, including its name, owner, creation date, member count, and roles.
 
-## 🔊 Audio Features
+## Audio Features
 
 The bot uses:
 
@@ -188,7 +211,7 @@ Audio files are generated and sent as Discord attachments.
 
 The bot does not currently join voice channels or provide live voice communication.
 
-## 🏰 Project Structure
+## Project Structure
 
 ```text
 The-Real-Olrox/
@@ -256,14 +279,14 @@ The bot uses the `discord.py` Cogs system to organize its functionality into sep
 | `images.py` | Machine learning image classification |
 | `english.py` | English practice and speech recognition |
 | `social.py` | Member events, profiles, and server information |
-| `levels.py` | SQLite experience, rankings, and automatic XP |
+| `levels.py` | SQLite XP, level calculation, leaderboards, level-up announcements, and automatic progression roles |
 | `models/model.py` | Image preprocessing and model inference |
 
 This architecture makes the project easier to maintain, debug, test, and expand.
 
 And prevents `main.py` from becoming a 900-year-old monster again.
 
-## 🛠️ Technologies
+## Technologies
 
 - Python 3.11
 - discord.py
@@ -281,7 +304,7 @@ And prevents `main.py` from becoming a 900-year-old monster again.
 - asyncio
 - pathlib
 
-## ⚙️ Installation
+## Installation
 
 ### 1. Clone the Repository
 
@@ -315,10 +338,10 @@ The machine learning feature requires the trained `.h5` model and its correspond
 1. Create a bot in the Discord Developer Portal.
 2. Enable the **Message Content Intent**.
 3. Enable the **Server Members Intent** for member join and leave events.
-4. Invite the bot to a Discord server with the necessary permissions.
+4. Invite the bot to a Discord server with the necessary permissions, including **Manage Roles** for automatic progression roles.
 5. Configure the Discord token according to the project's local configuration.
 6. Verify that the required models, GIFs, and icons are present.
-7. Create the `data/` directory if it does not exist.
+7. Create the `data/` directory if it does not exist. Configure the progression roles and their IDs in `commands/levels.py`, and place the bot role above them in the server role hierarchy.
 8. Run the bot:
 
 ```bash
@@ -340,7 +363,7 @@ The bot must have permission to send messages and embeds in these channels.
 
 **Security:** Never publish Discord bot tokens, passwords, or private API credentials.
 
-## 🎨 Visual Identity
+## Visual Identity
 
 The bot uses customized Discord embeds featuring:
 
@@ -354,7 +377,7 @@ The bot uses customized Discord embeds featuring:
 
 The visual identity is inspired by Olrox from *Castlevania: Nocturne*.
 
-## 📚 Learning Objectives
+## Learning Objectives
 
 This project explores:
 
@@ -388,13 +411,14 @@ This project explores:
 - Experience data is stored locally and is not automatically synchronized between installations.
 - The English game's scores are not currently added to the SQLite XP system.
 
-## 🔮 Future Development
+## Future Development
 
 Potential improvements include:
 
 - An interactive `$help` menu with categorized commands
 - Additional historical content and themed interactions
-- New experience rewards and progression features
+- Additional experience rewards and progression features
+- A companion website/dashboard for The Real Olrox
 - Expanded server customization
 - Improved error handling and configuration
 
