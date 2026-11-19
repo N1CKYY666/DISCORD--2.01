@@ -7,6 +7,14 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
+LEVEL_ROLES = {
+    5: 1572753340087926784,    # The Speaker
+    10: 1572753795644137573,   # The Forgemaster
+    20: 1572753942998163517,   # The Dhampir
+    35: 1572754226960932954,   # The Noble
+    50: 1572754321714446388    # The Vampire Messiah
+}
+
 DB_PATH = (
     Path(__file__).resolve().parent.parent
     / "data" / "olrox.db"
@@ -62,6 +70,20 @@ def get_experience(guild_id, user_id):
         return result[0]
 
 
+def calculate_level(xp):
+    """Calculate a user's level and XP thresholds."""
+    level = 1
+    previous_xp = 0
+    next_xp = 100
+
+    while xp >= next_xp:
+        level += 1
+        previous_xp = next_xp
+        next_xp += 50 * (level + 1)
+
+    return level, previous_xp, next_xp
+
+
 def get_leaderboard(guild_id):
     """Retrieve the ten members with the most XP."""
     with sqlite3.connect(DB_PATH) as connection:
@@ -87,6 +109,55 @@ class Levels(commands.Cog):
         create_database()
         self.xp_cooldowns = {}
 
+    async def update_level_role(self, member, level):
+        """Assign the appropriate role for a member's level."""
+        eligible_levels = [
+            required_level
+            for required_level in LEVEL_ROLES
+            if level >= required_level
+        ]
+
+        role_id = (
+            LEVEL_ROLES[max(eligible_levels)]
+            if eligible_levels
+            else None
+        )
+
+        available_roles = [
+            role for role in member.roles
+            if role.id in LEVEL_ROLES.values()
+        ]
+
+        if role_id is None:
+            if available_roles:
+                await member.remove_roles(
+                    *available_roles,
+                    reason="Level role update"
+                )
+            return
+
+        new_role = member.guild.get_role(role_id)
+
+        if new_role is None:
+            return
+
+        old_roles = [
+            role for role in available_roles
+            if role.id != role_id
+        ]
+
+        if old_roles:
+            await member.remove_roles(
+                *old_roles,
+                reason="Level progression"
+            )
+
+        if new_role not in member.roles:
+            await member.add_roles(
+                new_role,
+                reason=f"Reached level {level}"
+            )
+
     @commands.command(name="rank")
     @commands.guild_only()
     async def rank(self, ctx, member: discord.Member = None):
@@ -99,11 +170,23 @@ class Levels(commands.Cog):
             member.id
         )
 
+        level, previous_xp, next_xp = calculate_level(xp)
+
+        progress = xp - previous_xp
+        required = next_xp - previous_xp
+        remaining_xp = next_xp - xp
+
+        filled = int((progress / required) * 10)
+        bar = "▰" * filled + "▱" * (10 - filled)
+
         embed = discord.Embed(
             title="✦ ───── RANKING ───── ✦",
             description=(
                 f"☾ **Member:** {member.display_name}\n"
                 f"☾ **Experience:** {xp} XP\n"
+                f"☾ **Level:** {level}\n"
+                f"☾ **Progress:** {bar}\n"
+                f"☾ **Next Level:** {remaining_xp} XP remaining\n\n"
                 "*At least you're trying.*"
             ),
             color=0x74459A
@@ -120,8 +203,8 @@ class Levels(commands.Cog):
         )
 
         divider = discord.File(
-            "assets/gifs/divider3.gif",
-            filename="divider3.gif"
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
         )
 
         embed.set_thumbnail(
@@ -129,7 +212,7 @@ class Levels(commands.Cog):
         )
 
         embed.set_image(
-            url="attachment://divider3.gif"
+            url="attachment://divider1.gif"
         )
 
         await ctx.send(embed=embed, files=[image, divider])
@@ -160,6 +243,15 @@ class Levels(commands.Cog):
             ctx.guild.id,
             member.id
         )
+
+        level, _, _ = calculate_level(total_xp)
+
+        try:
+            await self.update_level_role(member, level)
+        except discord.Forbidden:
+            print("Role update failed: missing permissions.")
+        except discord.HTTPException as error:
+            print(f"Role update failed: {error}")
 
         embed = discord.Embed(
             title="✦ ───── EXPERIENCE GRANTED ───── ✦",
@@ -288,16 +380,66 @@ class Levels(commands.Cog):
         if current_time - last_message < 60:
             return
 
-        amount = random.randint(5, 15)
+        old_xp = get_experience(guild_id, user_id)
+        old_level, _, _ = calculate_level(old_xp)
 
-        add_experience(
-            guild_id,
-            user_id,
-            amount
-        )
+        amount = random.randint(5, 15)
+        add_experience(guild_id, user_id, amount)
+
+        new_xp = get_experience(guild_id, user_id)
+        new_level, _, _ = calculate_level(new_xp)
 
         self.xp_cooldowns[user_key] = current_time
 
+        try:
+            await self.update_level_role(
+                message.author,
+                new_level
+            )
+        except discord.Forbidden:
+            print(
+                "Role update failed: "
+                "missing permissions or role hierarchy."
+            )
+        except discord.HTTPException as error:
+            print(f"Role update failed: {error}")
+
+        if new_level > old_level:
+            embed = discord.Embed(
+                title="✦ ───── LEVEL UP ───── ✦",
+                description=(
+                    f"꒰ Congratulations, {message.author.mention}! ꒱\n\n"
+                    f"☾ **New Level:** {new_level}\n"
+                    f"☾ **Total Experience:** {new_xp} XP\n\n"
+                    "*Try not to let it go to your head.*"
+                ),
+                color=0x74459A
+            )
+
+            image = discord.File(
+                "assets/gifs/olrox5.gif",
+                filename="olrox5.gif"
+            )
+            divider = discord.File(
+                "assets/gifs/divider1.gif",
+                filename="divider1.gif"
+            )
+
+            embed.set_thumbnail(
+                url="attachment://olrox5.gif"
+            )
+            embed.set_image(
+                url="attachment://divider1.gif"
+            )
+            embed.set_footer(
+                text="THE REAL OLROX • I hate Julia Belmont.",
+                icon_url=self.bot.user.display_avatar.url
+            )
+
+            await message.channel.send(
+                embed=embed,
+                files=[image, divider]
+            )
 
 
 async def setup(bot):
