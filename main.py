@@ -27,7 +27,7 @@ async def main():
         await bot.load_extension("commands.history")
         await bot.load_extension("commands.voice")
         await bot.load_extension("commands.weather")
-        # await bot.load_extension("commands.images")
+        # await bot.load_extension("commands.images") DISABLED FOR NOW. THIS FUNCTION GOT STUBBORN.
         await bot.load_extension("commands.english")
         await bot.load_extension("commands.social")
         await bot.load_extension("commands.levels")
