@@ -54,6 +54,39 @@ Nothing serious. Just a vampire learning software engineering. xd
 | `$leaderboard` | Displays the top 10 members by experience |
 | `$top` | Alias for `$leaderboard` |
 
+### The Economy
+
+The Real Olrox features a server-based virtual economy
+inspired by Revolutionary France (Basically, the serie's whole background)
+
+Two currencies are used:
+
+- **Livres:** The standard currency for everyday activities.
+- **Louis d'or:** A special currency reserved for future
+  achievements, events, and exclusive rewards.
+
+| Command | Description |
+|---|---|
+| `$balance` | Displays a member's Livres and Louis d'or |
+| `$bal` | Alias for `$balance` |
+| `$balance @user` | Displays another member's balance |
+| `$daily` | Claims 150 Livres once every 24 hours |
+
+Balances and daily cooldowns are stored in SQLite.
+
+The economy uses custom Discord currency emojis and
+themed animated embeds.
+
+### Planned Economy Features
+
+- Level-based professions and random jobs
+- Shop and inventory
+- Gifts and transfers
+- Robbery with cooldowns and penalties
+- Virtual-currency casino games
+
+These features are planned and not yet implemented, please have faith in me lmao
+
 ## 🏆 Experience & Ranking System
 
 The bot includes a persistent experience system powered by **SQLite**.
