@@ -265,6 +265,7 @@ The-Real-Olrox/
 │   ├── english.py
 │   ├── social.py
 │   └── levels.py
+│   └── economy.py
 │
 ├── models/
 │   ├── model.py
@@ -314,6 +315,8 @@ The bot uses the `discord.py` Cogs system to organize its functionality into sep
 | `social.py` | Member events, profiles, and server information |
 | `levels.py` | SQLite XP, level calculation, leaderboards, level-up announcements, and automatic progression roles |
 | `models/model.py` | Image preprocessing and model inference |
+| `economy.py` | Whole economy system |
+
 
 This architecture makes the project easier to maintain, debug, test, and expand.
 
@@ -336,6 +339,8 @@ And prevents `main.py` from becoming a 900-year-old monster again.
 - wttr.in
 - asyncio
 - pathlib
+-random
+-time
 
 ## Installation
 
