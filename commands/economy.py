@@ -27,13 +27,27 @@ def create_economy_database():
             """
         )
 
-        columns = connection.execute(
-            "PRAGMA table_info(economy)"
-        ).fetchall()
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_jobs (
+                guild_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                job_id TEXT NOT NULL,
+                last_change INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (guild_id, user_id)
+            )
+            """
+        )
 
-        column_names = [column[1] for column in columns]
+        # Check economy columns.
+        economy_columns = {
+            row[1]
+            for row in connection.execute(
+                "PRAGMA table_info(economy)"
+            ).fetchall()
+        }
 
-        if "louis_dor" not in column_names:
+        if "louis_dor" not in economy_columns:
             connection.execute(
                 """
                 ALTER TABLE economy
@@ -41,11 +55,27 @@ def create_economy_database():
                 """
             )
 
-        if "last_daily" not in column_names:
+        if "last_daily" not in economy_columns:
             connection.execute(
                 """
                 ALTER TABLE economy
                 ADD COLUMN last_daily INTEGER NOT NULL DEFAULT 0
+                """
+            )
+
+        # Check user_jobs columns.
+        job_columns = {
+            row[1]
+            for row in connection.execute(
+                "PRAGMA table_info(user_jobs)"
+            ).fetchall()
+        }
+
+        if "last_work" not in job_columns:
+            connection.execute(
+                """
+                ALTER TABLE user_jobs
+                ADD COLUMN last_work INTEGER NOT NULL DEFAULT 0
                 """
             )
 
@@ -122,6 +152,11 @@ class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         create_economy_database()
+
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        if ctx.command and ctx.command.cog is self:
+            print(f"[ECONOMY ERROR] {error!r}")
 
     @commands.command(name="balance", aliases=["bal"])
     @commands.guild_only()
