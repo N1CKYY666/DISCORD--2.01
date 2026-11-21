@@ -141,11 +141,19 @@ class Social(commands.Cog):
             ),
             color=0x74459A
         )
+
+        divider = discord.File(
+            "assets/gifs/divider1.gif",
+            filename="divider1.gif"
+        )
+
+        embed.set_image(url="attachment://divider1.gif")
+
         if guild.icon:
             embed.set_thumbnail(url=guild.icon.url)
 
         self.decorate_embed(embed)
-        await ctx.send(embed=embed, file=self.divider_file())
+        await ctx.send(embed=embed, file=divider)
 
 
 async def setup(bot):
