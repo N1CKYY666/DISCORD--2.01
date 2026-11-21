@@ -1,7 +1,6 @@
 
 """Profession and employment system for The Real Olrox."""
 
-import random
 import sqlite3
 import time
 from pathlib import Path
@@ -17,44 +16,91 @@ DB_PATH = (
 )
 
 JOB_CHANGE_COOLDOWN = 24 * 60 * 60
-WORK_COOLDOWN = 30 * 60
 
 JOBS = {
     "baker": {
         "name": "Baker",
         "level": 1,
         "min_pay": 30,
-        "max_pay": 65
+        "max_pay": 65,
+        "mission_type": "standard"
     },
     "gravedigger": {
         "name": "Gravedigger",
         "level": 1,
         "min_pay": 35,
-        "max_pay": 80
+        "max_pay": 80,
+        "mission_type": "standard"
+    },
+    "merchant": {
+        "name": "Merchant",
+        "level": 3,
+        "min_pay": 50,
+        "max_pay": 100,
+        "mission_type": "standard"
     },
     "speaker": {
         "name": "Speaker Apprentice",
         "level": 5,
         "min_pay": 65,
-        "max_pay": 125
+        "max_pay": 125,
+        "mission_type": "standard"
     },
-    "knight": {
-        "name": "Knight of Saint John",
-        "level": 15,
-        "min_pay": 150,
-        "max_pay": 240
+    "apothecary": {
+        "name": "Apothecary",
+        "level": 8,
+        "min_pay": 85,
+        "max_pay": 155,
+        "mission_type": "standard"
     },
     "forgemaster": {
         "name": "Devil Forgemaster",
         "level": 10,
         "min_pay": 100,
-        "max_pay": 180
+        "max_pay": 180,
+        "mission_type": "standard"
+    },
+    "revolutionary": {
+        "name": "Revolutionary",
+        "level": 12,
+        "min_pay": 125,
+        "max_pay": 210,
+        "mission_type": "interactive"
+    },
+    "knight": {
+        "name": "Knight of Saint John",
+        "level": 15,
+        "min_pay": 150,
+        "max_pay": 240,
+        "mission_type": "interactive"
+    },
+    "informant": {
+        "name": "Vampire Informant",
+        "level": 20,
+        "min_pay": 175,
+        "max_pay": 285,
+        "mission_type": "interactive"
     },
     "hunter": {
         "name": "Vampire Hunter",
         "level": 25,
         "min_pay": 200,
-        "max_pay": 320
+        "max_pay": 320,
+        "mission_type": "elite"
+    },
+    "summoner": {
+        "name": "Summoner",
+        "level": 35,
+        "min_pay": 275,
+        "max_pay": 425,
+        "mission_type": "elite"
+    },
+    "lieutenant": {
+        "name": "Vampire Lieutenant",
+        "level": 50,
+        "min_pay": 400,
+        "max_pay": 600,
+        "mission_type": "elite"
     }
 }
 
@@ -64,7 +110,13 @@ JOB_EMOJIS = {
     "speaker": "<:speakers:1573507308192010300>",
     "knight": "<:saint_john:1573500680608546897>",
     "forgemaster": "<:forgemaster:1573508322831761488>",
-    "hunter": "<:belmont:1573216480823345182>"
+    "hunter": "<:belmont:1573216480823345182>",
+    "lieutenant": "<:eclipse:1573737278331953162>",
+    "merchant": "<:balance:1573769035806539846>",
+    "apothecary": "<:alquimist:1573770637074497656>",
+    "revolutionary": "<:frigio:1573770685569040544>",
+    "informant": "<:envelope1:1573770919011287211>",
+    "summoner": "<:summoner:1573767607792701490>",
 }
 
 
@@ -116,159 +168,6 @@ def select_job(guild_id, user_id, job_id):
         )
 
         return "changed", 0
-
-
-def perform_work(guild_id, user_id):
-    """Pay a worker and enforce the 30-minute cooldown."""
-    now = int(time.time())
-
-    with sqlite3.connect(DB_PATH, timeout=10) as connection:
-        connection.execute("BEGIN IMMEDIATE")
-
-        result = connection.execute(
-            """
-            SELECT job_id, last_work
-            FROM user_jobs
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (guild_id, user_id)
-        ).fetchone()
-
-        if result is None:
-            return "unemployed", None, 0
-
-        job_id, last_work = result
-        job = JOBS.get(job_id)
-
-        if job is None:
-            return "invalid_job", None, 0
-
-        remaining = WORK_COOLDOWN - (now - last_work)
-
-        if remaining > 0:
-            return "cooldown", job_id, remaining
-
-        salary = random.randint(
-            job["min_pay"],
-            job["max_pay"]
-        )
-
-        connection.execute(
-            """
-            INSERT OR IGNORE INTO economy (
-                guild_id, user_id
-            )
-            VALUES (?, ?)
-            """,
-            (guild_id, user_id)
-        )
-
-        connection.execute(
-            """
-            UPDATE economy
-            SET balance = balance + ?
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (salary, guild_id, user_id)
-        )
-
-        connection.execute(
-            """
-            UPDATE user_jobs
-            SET last_work = ?
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (now, guild_id, user_id)
-        )
-
-        return "success", job_id, salary
-
-
-def perform_random_work(guild_id, user_id):
-    """Complete a random job without changing the main profession."""
-    now = int(time.time())
-
-    with sqlite3.connect(DB_PATH, timeout=10) as connection:
-        connection.execute("BEGIN IMMEDIATE")
-
-        result = connection.execute(
-            """
-            SELECT job_id, last_work
-            FROM user_jobs
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (guild_id, user_id)
-        ).fetchone()
-
-        if result is None:
-            return "unemployed", None, 0
-
-        current_job, last_work = result
-
-        if current_job not in JOBS:
-            return "invalid_job", None, 0
-
-        remaining = WORK_COOLDOWN - (now - last_work)
-
-        if remaining > 0:
-            return "cooldown", current_job, remaining
-
-        xp_result = connection.execute(
-            """
-            SELECT xp
-            FROM experience
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (guild_id, user_id)
-        ).fetchone()
-
-        user_xp = xp_result[0] if xp_result else 0
-        user_level, _, _ = calculate_level(user_xp)
-
-        available_jobs = [
-            job_id
-            for job_id, job in JOBS.items()
-            if user_level >= job["level"]
-        ]
-
-        if not available_jobs:
-            return "no_jobs", None, 0
-
-        random_job_id = random.choice(available_jobs)
-        job = JOBS[random_job_id]
-
-        salary = random.randint(
-            job["min_pay"],
-            job["max_pay"]
-        )
-
-        connection.execute(
-            """
-            INSERT OR IGNORE INTO economy (guild_id, user_id)
-            VALUES (?, ?)
-            """,
-            (guild_id, user_id)
-        )
-
-        connection.execute(
-            """
-            UPDATE economy
-            SET balance = balance + ?
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (salary, guild_id, user_id)
-        )
-
-        connection.execute(
-            """
-            UPDATE user_jobs
-            SET last_work = ?
-            WHERE guild_id = ? AND user_id = ?
-            """,
-            (now, guild_id, user_id)
-        )
-
-        return "success", random_job_id, salary
 
 
 class JobsView(discord.ui.View):
@@ -335,6 +234,118 @@ class Jobs(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.command(name="testjob", hidden=True)
+    @commands.guild_only()
+    @commands.is_owner()
+    async def testjob(self, ctx, profession: str = None):
+        """Temporarily bypass job restrictions for bot testing."""
+        if profession is None:
+            await ctx.send(
+                "Specify a profession\n"
+                "Example: `$testjob revolutionary`."
+            )
+            return
+
+        profession = profession.lower().strip()
+
+        if profession not in JOBS:
+            await ctx.send(
+                "That profession doesn't exist.\n"
+                "Consult `$jobs`."
+            )
+            return
+
+        now = int(time.time())
+
+        with sqlite3.connect(DB_PATH, timeout=10) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+
+            connection.execute(
+                """
+                INSERT INTO user_jobs (
+                    guild_id,
+                    user_id,
+                    job_id,
+                    last_change
+                )
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(guild_id, user_id)
+                DO UPDATE SET
+                    job_id = excluded.job_id,
+                    last_change = excluded.last_change
+                """,
+                (
+                    ctx.guild.id,
+                    ctx.author.id,
+                    profession,
+                    now
+                )
+            )
+
+        job = JOBS[profession]
+        emoji = JOB_EMOJIS.get(profession, "◈")
+
+        embed = discord.Embed(
+            title="✦ ───── TEST CONTRACT ───── ✦",
+            description=(
+                f"{emoji} **{job['name']}**\n\n"
+                "Your profession has been changed "
+                "for testing purposes.\n\n"
+                "◈ **Contract cooldown:** Bypassed\n"
+                "◈ **Required level:** Bypassed\n\n"
+                "*Try not to abuse your privileges, darling.*"
+            ),
+            color=0x74459A
+        )
+
+        embed.set_footer(
+            text="THE REAL OLROX • Developer access."
+        )
+
+        await ctx.send(embed=embed)
+
+    @commands.command(name="testreset", hidden=True)
+    @commands.guild_only()
+    @commands.is_owner()
+    async def testreset(self, ctx):
+        """Reset the owner's work cooldown for testing."""
+        with sqlite3.connect(DB_PATH, timeout=10) as connection:
+            connection.execute("BEGIN IMMEDIATE")
+
+            connection.execute(
+                """
+                UPDATE user_jobs
+                SET last_work = 0
+                WHERE guild_id = ? AND user_id = ?
+                """,
+                (ctx.guild.id, ctx.author.id)
+            )
+
+            connection.execute(
+                """
+                DELETE FROM active_missions
+                WHERE guild_id = ? AND user_id = ?
+                """,
+                (ctx.guild.id, ctx.author.id)
+            )
+
+        embed = discord.Embed(
+            title="✦ ───── TEST RESET ───── ✦",
+            description=(
+                "Your work cooldown has been reset.\n\n"
+                "◈ **Work cooldown:** Cleared\n"
+                "◈ **Pending mission:** Cancelled\n\n"
+                "*The revolution waits for no one*"
+            ),
+            color=0x74459A
+        )
+
+        embed.set_footer(
+            text="THE REAL OLROX • Developer access."
+        )
+
+        await ctx.send(embed=embed)
 
     @commands.command(name="jobs")
     @commands.guild_only()
@@ -539,116 +550,6 @@ class Jobs(commands.Cog):
             text=(
                 "THE REAL OLROX • "
                 "Richter's childhood nightmare."
-            ),
-            icon_url=self.bot.user.display_avatar.url
-        )
-
-        await ctx.send(
-            embed=embed,
-            files=[image, divider]
-        )
-
-    @commands.command(name="work")
-    @commands.guild_only()
-    async def work(self, ctx, mode: str = None):
-        """Work in the main profession or a random unlocked job."""
-        if mode is not None and mode.lower() != "random":
-            await ctx.send(
-                "Unknown work mode, darling.\n"
-                "Use `$work` or `$work random`."
-            )
-            return
-
-        is_random = mode is not None
-
-        if is_random:
-            status, job_id, result = perform_random_work(
-                ctx.guild.id,
-                ctx.author.id
-            )
-        else:
-            status, job_id, result = perform_work(
-                ctx.guild.id,
-                ctx.author.id
-            )
-
-        if status == "unemployed":
-            await ctx.send(
-                "Unemployed? How unfortunate.\n"
-                "Browse `$jobs` and choose a profession "
-                "with `$job <profession>`."
-            )
-            return
-
-        if status == "invalid_job":
-            await ctx.send(
-                "Your employment records appear to be corrupted. "
-                "How embarrassing."
-            )
-            return
-
-        if status == "no_jobs":
-            await ctx.send(
-                "No professions are available at your level."
-            )
-            return
-
-        job = JOBS[job_id]
-        emoji = JOB_EMOJIS.get(job_id, "◈")
-        livre_emoji = "<:livre:1573206463147544586>"
-
-        if status == "cooldown":
-            minutes, seconds = divmod(result, 60)
-
-            title = "✦ ───── ON BREAK ───── ✦"
-            description = (
-                "You've already completed your shift.\n\n"
-                f"◈ **Next shift:** {minutes}m {seconds}s\n\n"
-                "*Get some rest.*"
-            )
-        else:
-            title = (
-                "✦ ─── RANDOM SHIFT COMPLETED ─── ✦"
-                if is_random
-                else "✦ ───── SHIFT COMPLETED ───── ✦"
-            )
-
-            description = (
-                f"☾ **Employee:** {ctx.author.mention}\n\n"
-                f"{emoji} **Profession:** {job['name']}\n"
-                f"{livre_emoji} **Earned:** +{result:,} Livres\n\n"
-                "◈ **Next shift:** 30 minutes\n\n"
-                "*Your labor has been... adequate.*"
-            )
-
-        embed = discord.Embed(
-            title=title,
-            description=description,
-            color=0x74459A
-        )
-
-        image = discord.File(
-            "assets/gifs/apologies.gif",
-            filename="apologies.gif"
-        )
-
-        divider = discord.File(
-            "assets/gifs/divider1.gif",
-            filename="divider1.gif"
-        )
-
-        embed.set_thumbnail(
-            url="attachment://apologies.gif"
-        )
-
-        embed.set_image(
-            url="attachment://divider1.gif"
-        )
-
-        embed.set_footer(
-            text=(
-                "THE REAL OLROX • "
-                "Working hard."
             ),
             icon_url=self.bot.user.display_avatar.url
         )
