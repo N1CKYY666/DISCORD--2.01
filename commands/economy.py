@@ -39,6 +39,19 @@ def create_economy_database():
             """
         )
 
+        connection.execute(
+            """
+            CREATE TABLE IF NOT EXISTS active_missions (
+                guild_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                job_id TEXT NOT NULL,
+                mission_id TEXT NOT NULL,
+                expires_at INTEGER NOT NULL,
+                PRIMARY KEY (guild_id, user_id)
+            )
+            """
+        )
+
         # Check economy columns.
         economy_columns = {
             row[1]
