@@ -2,7 +2,7 @@
 
 *A sarcastic buddy with a suspicious amount of Python knowledge.*
 
-A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English practice, speech recognition, text-to-speech, weather information, historical facts, social interactions, and an SQLite-based experience system. Made by a teenager who's still trying to learn.
+A Python Discord bot inspired by **Olrox from Castlevania: Nocturne**, combining machine learning, English practice, speech recognition, text-to-speech, weather information, historical facts, social interactions, and SQLite-based experience, economy, and employment systems. Made by a teenager who's still trying to learn.
 
 Originally developed as a Python learning exercise, the project has evolved from one chaotic script into a modular Discord bot using **Cogs**.
 
@@ -56,36 +56,58 @@ Nothing serious. Just a vampire learning software engineering. xd
 
 ### The Economy
 
-The Real Olrox features a server-based virtual economy
-inspired by Revolutionary France (Basically, the serie's whole background)
+The Real Olrox features a server-based virtual economy inspired by Revolutionary France (basically, the series' whole background).
 
 Two currencies are used:
 
 - **Livres:** The standard currency for everyday activities.
-- **Louis d'or:** A special currency reserved for future
-  achievements, events, and exclusive rewards.
+- **Louis d'or:** A special currency reserved for future achievements, events, and exclusive rewards.
 
 | Command | Description |
 |---|---|
-| `$balance` | Displays a member's Livres and Louis d'or |
+| `$balance` | Displays your Livres and Louis d'or |
 | `$bal` | Alias for `$balance` |
 | `$balance @user` | Displays another member's balance |
 | `$daily` | Claims 150 Livres once every 24 hours |
 
-Balances and daily cooldowns are stored in SQLite.
+Balances and daily cooldowns are stored in SQLite. The economy uses custom Discord currency emojis and themed animated embeds.
 
-The economy uses custom Discord currency emojis and
-themed animated embeds.
+### Professions & Employment
+
+Members can apply for a profession, earn Livres through work, and unlock additional professions as they gain experience.
+
+| Command | Description |
+|---|---|
+| `$jobs` | Opens an interactive, paginated profession catalog |
+| `$job <profession>` | Selects or changes your primary profession |
+| `$work` | Earns a random salary in your primary profession |
+| `$work random` | Takes a random job from professions unlocked at your level without changing your primary contract |
+
+| Profession ID | Profession | Required level | Salary (Livres) |
+|---|---|---:|---:|
+| `baker` | Baker | 1 | 30–65 |
+| `gravedigger` | Gravedigger | 1 | 35–80 |
+| `speaker` | Speaker Apprentice | 5 | 65–125 |
+| `forgemaster` | Devil Forgemaster | 10 | 100–180 |
+| `knight` | Knight of Saint John | 15 | 150–240 |
+| `hunter` | Vampire Hunter | 25 | 200–320 |
+
+- **Contract changes:** Once every 24 hours; the first selection is immediate.
+- **Work cooldown:** 30 minutes, shared by `$work` and `$work random`.
+- **Random shifts:** Select from level-unlocked professions, potentially including the primary profession.
+- **Persistent records:** Contracts, last work times, and currency balances are saved in `data/olrox.db`.
+- **Payment safety:** SQLite transactions update wages and cooldowns together to prevent duplicate claims.
+
+Employment commands share a consistent purple embed design. Random work does not alter the user's primary profession.
 
 ### Planned Economy Features
 
-- Level-based professions and random jobs
 - Shop and inventory
 - Gifts and transfers
 - Robbery with cooldowns and penalties
 - Virtual-currency casino games
 
-These features are planned and not yet implemented, please have faith in me lmao
+These features are planned and not yet implemented. Please have faith in me lmao.
 
 ## 🏆 Experience & Ranking System
 
@@ -264,8 +286,9 @@ The-Real-Olrox/
 │   ├── images.py
 │   ├── english.py
 │   ├── social.py
-│   └── levels.py
-│   └── economy.py
+│   ├── levels.py
+│   ├── economy.py
+│   └── jobs.py
 │
 ├── models/
 │   ├── model.py
@@ -315,7 +338,8 @@ The bot uses the `discord.py` Cogs system to organize its functionality into sep
 | `social.py` | Member events, profiles, and server information |
 | `levels.py` | SQLite XP, level calculation, leaderboards, level-up announcements, and automatic progression roles |
 | `models/model.py` | Image preprocessing and model inference |
-| `economy.py` | Whole economy system |
+| `economy.py` | Currency balances, daily rewards, and economy database initialization |
+| `jobs.py` | Profession catalog, contracts, work shifts, random jobs, and employment cooldowns |
 
 
 This architecture makes the project easier to maintain, debug, test, and expand.
@@ -339,8 +363,8 @@ And prevents `main.py` from becoming a 900-year-old monster again.
 - wttr.in
 - asyncio
 - pathlib
--random
--time
+- `random`
+- `time`
 
 ## Installation
 
@@ -386,7 +410,7 @@ The machine learning feature requires the trained `.h5` model and its correspond
 python main.py
 ```
 
-The SQLite experience table is created automatically when the Levels Cog initializes.
+The SQLite experience table is created automatically when the Levels Cog initializes. Economy and employment tables are initialized by the Economy Cog; load `commands.economy` before `commands.jobs` in `main.py`.
 
 ### 4. Optional Server Channels
 
@@ -432,7 +456,8 @@ This project explores:
 - SQLite databases and SQL queries
 - Persistent data storage
 - Discord events and permissions
-- Command cooldowns and automatic rewards
+- Command cooldowns, virtual salaries, and automatic rewards
+- SQLite transactions and employment contracts
 - Interactive Discord embeds
 - Code organization and PEP 8 conventions
 - Git and GitHub project documentation
@@ -456,6 +481,7 @@ Potential improvements include:
 - An interactive `$help` menu with categorized commands
 - Additional historical content and themed interactions
 - Additional experience rewards and progression features
+- An item shop, inventory, gifting, and robbery mechanics
 - A companion website/dashboard for The Real Olrox
 - Expanded server customization
 - Improved error handling and configuration
@@ -466,7 +492,7 @@ The project continues to evolve as new Python concepts are explored.
 
 ###  Final Words
 
-What started as a simple Python exercise became a Discord bot with machine learning, audio processing, custom graphics, interactive games, social interactions, and a persistent experience system.
+What started as a simple Python exercise became a Discord bot with machine learning, audio processing, custom graphics, interactive games, social interactions, and persistent experience, economy, and employment systems.
 
 There were errors. There were exceptions. There were questionable decisions.
 
