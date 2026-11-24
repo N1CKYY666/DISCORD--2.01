@@ -3,25 +3,68 @@
 import random
 import sqlite3
 import time
+from pathlib import Path
 
 import discord
 from discord.ext import commands
 
+from commands.item_effects import ITEM_EFFECTS
 from commands.jobs import DB_PATH
+from commands.mission_data import MISSIONS
+from commands.shop import get_user_inventory
 from commands.work import WORK_COOLDOWN
+
+GIF_DIR = Path(__file__).resolve().parent.parent / "assets" / "gifs"
+
+DIVIDER_GIF = GIF_DIR / "divider1.gif"
+AURA_GIFS = [
+    GIF_DIR / "aura_farming.gif",
+    GIF_DIR / "power.gif",
+    GIF_DIR / "hair.gif"
+]
+
+
+def decorate_mission_embed(embed, aura_gif):
+    """Apply the standard mission embed appearance."""
+    embed.set_thumbnail(url=f"attachment://{aura_gif.name}")
+    embed.set_image(url="attachment://divider1.gif")
+    return embed
+
+
+def get_mission_files(aura_gif):
+    """Create the GIF attachments for a mission message."""
+    return [
+        discord.File(DIVIDER_GIF, filename="divider1.gif"),
+        discord.File(aura_gif, filename=aura_gif.name)
+    ]
+
+
+def get_compatible_items(guild_id, user_id, job_id):
+    """Return owned mission items compatible with a profession."""
+    inventory = get_user_inventory(guild_id, user_id)
+    compatible_items = []
+
+    for item_id, item_data, quantity in inventory:
+        effect = ITEM_EFFECTS.get(item_id)
+
+        if effect is None:
+            continue
+
+        allowed_jobs = effect["jobs"]
+
+        if allowed_jobs != "all" and job_id not in allowed_jobs:
+            continue
+
+        compatible_items.append(
+            (item_id, item_data, quantity, effect)
+        )
+
+    return compatible_items
 
 
 def get_revolutionary_mission():
     """Return the first Revolutionary mission."""
-    return {
-        "id": "supply_convoy",
-        "title": "The Supply Convoy",
-        "description": (
-            "A royal convoy is transporting supplies "
-            "through the countryside.\n"
-            "Your allies desperately need those resources."
-        ),
-    }
+    return MISSIONS["supply_convoy"]
 
 
 def reserve_mission(guild_id, user_id, job_id, mission_id):
@@ -106,10 +149,12 @@ def complete_mission(
     """Complete a mission and award its reward exactly once."""
     now = int(time.time())
 
+    mission = MISSIONS.get(mission_id)
+
     if (
-        job_id != "revolutionary"
-        or mission_id != "supply_convoy"
-        or choice not in REVOLUTIONARY_REWARDS
+        mission is None
+        or mission["job"] != job_id
+        or choice not in mission["choices"]
     ):
         return "invalid_mission", 0, False
 
@@ -163,7 +208,7 @@ def complete_mission(
         if remaining > 0:
             return "cooldown", remaining, False
 
-        settings = REVOLUTIONARY_REWARDS[choice]
+        settings = mission["choices"][choice]
         success = random.random() < settings["success_chance"]
 
         pay_range = (
@@ -211,18 +256,7 @@ def complete_mission(
         return "success", reward, success
 
 
-REVOLUTIONARY_REWARDS = {
-    "stealth": {
-        "success_chance": 0.80,
-        "success_pay": (125, 180),
-        "failure_pay": (25, 50),
-    },
-    "assault": {
-        "success_chance": 0.55,
-        "success_pay": (180, 250),
-        "failure_pay": (0, 35),
-    },
-}
+REVOLUTIONARY_REWARDS = MISSIONS["supply_convoy"]["choices"]
 
 
 class MissionView(discord.ui.View):
@@ -232,19 +266,39 @@ class MissionView(discord.ui.View):
         self,
         author_id,
         guild_id=None,
-        mission_id=None
+        mission_id="supply_convoy",
+        aura_gif=None
     ):
         super().__init__(timeout=60)
         self.author_id = author_id
         self.guild_id = guild_id
         self.mission_id = mission_id
+        self.aura_gif = aura_gif
         self.choice = None
         self.message = None
+        mission = MISSIONS[self.mission_id]
+
+        for choice_id, choice_data in mission["choices"].items():
+            button = discord.ui.Button(
+                label=choice_data["label"],
+                emoji=choice_data["emoji"],
+                style=(
+                    discord.ButtonStyle.danger
+                    if choice_id == "assault"
+                    else discord.ButtonStyle.secondary
+                )
+            )
+
+            async def callback(interaction, selected=choice_id):
+                await self.finish_mission(interaction, selected)
+
+            button.callback = callback
+            self.add_item(button)
 
     async def interaction_check(self, interaction):
         if interaction.user.id != self.author_id:
             await interaction.response.send_message(
-                "This mission isn't yours, darling.",
+                "This mission belongs to another player.",
                 ephemeral=True
             )
             return False
@@ -256,7 +310,7 @@ class MissionView(discord.ui.View):
         is_test = self.guild_id is None
 
         if is_test:
-            settings = REVOLUTIONARY_REWARDS[choice]
+            settings = MISSIONS[self.mission_id]["choices"][choice]
             success = (
                 random.random() < settings["success_chance"]
             )
@@ -270,7 +324,7 @@ class MissionView(discord.ui.View):
             status, reward, success = complete_mission(
                 self.guild_id,
                 self.author_id,
-                "revolutionary",
+                MISSIONS[self.mission_id]["job"],
                 self.mission_id,
                 choice
             )
@@ -294,33 +348,17 @@ class MissionView(discord.ui.View):
                 )
                 return
 
-        if choice == "stealth":
-            if success:
-                result = (
-                    "You slipped through the shadows and "
-                    "seized the supplies unnoticed."
-                )
-            else:
-                result = (
-                    "A guard spotted your movements. "
-                    "You escaped with only a few supplies."
-                )
-        else:
-            if success:
-                result = (
-                    "Your assault overwhelmed the royal guards. "
-                    "The convoy is yours."
-                )
-            else:
-                result = (
-                    "The guards fought back fiercely. "
-                    "Your allies were forced to retreat."
-                )
+        mission = MISSIONS[self.mission_id]
+        choice_data = mission["choices"][choice]
+
+        result = (
+            choice_data["success_text"]
+            if success
+            else choice_data["failure_text"]
+        )
 
         mission_status = "SUCCESS" if success else "FAILURE"
-        strategy = (
-            "Stealth" if choice == "stealth" else "Direct Assault"
-        )
+        strategy = choice_data["label"]
         livre_emoji = "<:livre:1573206463147544586>"
 
         reward_label = (
@@ -338,7 +376,7 @@ class MissionView(discord.ui.View):
                 f"✦ ───── MISSION {mission_status} ───── ✦"
             ),
             description=(
-                "**The Supply Convoy**\n\n"
+                f"**{mission['title']}**\n\n"
                 f"{result}\n\n"
                 f"◈ **Strategy:** {strategy}\n"
                 f"{livre_emoji} **{reward_label}:** "
@@ -349,8 +387,14 @@ class MissionView(discord.ui.View):
         )
 
         embed.set_footer(
-            text="THE REAL OLROX • Taking a lot of risks."
+            text=(
+                "THE REAL OLROX • "
+                "Richter's childhood nightmare."
+            ),
+            icon_url=interaction.client.user.display_avatar.url
         )
+
+        decorate_mission_embed(embed, self.aura_gif)
 
         for item in self.children:
             item.disabled = True
@@ -363,21 +407,171 @@ class MissionView(discord.ui.View):
         self.choice = choice
         self.stop()
 
-    @discord.ui.button(
-        label="Stealth",
-        style=discord.ButtonStyle.secondary,
-        emoji="🌙"
-    )
-    async def stealth_button(self, interaction, button):
-        await self.finish_mission(interaction, "stealth")
+    async def on_timeout(self):
+        for item in self.children:
+            item.disabled = True
+
+        if self.message is not None:
+            try:
+                await self.message.edit(view=self)
+            except discord.HTTPException:
+                pass
+
+
+class EquipmentSelect(discord.ui.Select):
+    """Allow a player to choose mission equipment."""
+
+    def __init__(self, compatible_items):
+        options = [
+            discord.SelectOption(
+                label="No Equipment",
+                value="none",
+                description="Enter the mission without equipment."
+            )
+        ]
+
+        for item_id, item_data, quantity, effect in compatible_items:
+            options.append(
+                discord.SelectOption(
+                    label=item_data["name"],
+                    value=item_id,
+                    description=f"Available: {quantity}"
+                )
+            )
+
+        super().__init__(
+            placeholder="Choose your equipment...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction):
+        selected_item = self.values[0]
+
+        self.view.selected_item = selected_item
+
+        await interaction.response.send_message(
+            f"Selected equipment: **{selected_item}**\n"
+            "Press Confirm Equipment to lock your choice.",
+            ephemeral=True
+        )
+
+
+class EquipmentView(discord.ui.View):
+    """Mission equipment preparation interface."""
+
+    def __init__(
+        self,
+        author_id,
+        compatible_items,
+        guild_id,
+        mission_id,
+        aura_gif
+    ):
+        super().__init__(timeout=60)
+
+        self.author_id = author_id
+        self.guild_id = guild_id
+        self.mission_id = mission_id
+        self.aura_gif = aura_gif
+        self.selected_item = "none"
+        self.confirmed = False
+        self.message = None
+
+        self.add_item(EquipmentSelect(compatible_items))
+
+    async def interaction_check(self, interaction):
+        if interaction.user.id != self.author_id:
+            await interaction.response.send_message(
+                "This equipment belongs to another player.",
+                ephemeral=True
+            )
+            return False
+
+        return True
 
     @discord.ui.button(
-        label="Direct Assault",
-        style=discord.ButtonStyle.danger,
-        emoji="⚔️"
+        label="Confirm Equipment",
+        style=discord.ButtonStyle.success
     )
-    async def assault_button(self, interaction, button):
-        await self.finish_mission(interaction, "assault")
+    async def confirm_equipment(self, interaction, button):
+        if self.confirmed:
+            return
+
+        await interaction.response.defer()
+
+        mission = MISSIONS[self.mission_id]
+        job_id = mission["job"]
+
+        status, remaining = reserve_mission(
+            self.guild_id,
+            self.author_id,
+            job_id,
+            self.mission_id
+        )
+
+        if status != "reserved":
+            messages = {
+                "cooldown": "You must wait before your next mission.",
+                "wrong_job": "This mission is not for your profession.",
+                "unemployed": "You need a profession first.",
+                "active_mission": "You already have an active mission."
+            }
+
+            await interaction.followup.send(
+                messages.get(
+                    status,
+                    "This mission is currently unavailable."
+                ),
+                ephemeral=True
+            )
+            return
+
+        self.confirmed = True
+
+        for item in self.children:
+            item.disabled = True
+
+        await interaction.message.edit(view=self)
+
+        embed = discord.Embed(
+            title="✦ ───── MISSION ───── ✦",
+            description=(
+                f"**{mission['title']}**\n\n"
+                f"{mission['description']}\n\n"
+                f"**Equipment:** {self.selected_item}\n\n"
+                f"**{mission['question']}**\n\n"
+                "*Choose your strategy carefully.*"
+            ),
+            color=0x74459A
+        )
+
+        embed.set_footer(
+            text=(
+                "THE REAL OLROX • "
+                "Richter's childhood nightmare."
+            ),
+            icon_url=interaction.client.user.display_avatar.url
+        )
+
+        decorate_mission_embed(embed, self.aura_gif)
+
+        view = MissionView(
+            self.author_id,
+            guild_id=self.guild_id,
+            mission_id=self.mission_id,
+            aura_gif=self.aura_gif
+        )
+
+        view.message = await interaction.followup.send(
+            embed=embed,
+            view=view,
+            files=get_mission_files(self.aura_gif),
+            wait=True
+            )
+
+        self.stop()
 
     async def on_timeout(self):
         for item in self.children:
@@ -396,29 +590,116 @@ class Missions(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @commands.command(name="mission")
+    @commands.guild_only()
+    async def mission(self, ctx, mission_id="supply_convoy"):
+        """Start a mission with real rewards."""
+        mission_id = mission_id.lower()
+        mission = MISSIONS.get(mission_id)
+
+        if mission is None:
+            await ctx.send(
+                "That mission does not exist, monsieur."
+            )
+            return
+
+        job_id = mission["job"]
+
+        compatible_items = get_compatible_items(
+            ctx.guild.id,
+            ctx.author.id,
+            job_id
+        )
+
+        print(
+            f"[MISSION EQUIPMENT] "
+            f"User: {ctx.author.id} | "
+            f"Job: {job_id} | "
+            f"Items: {[item[0] for item in compatible_items]}"
+        )
+
+        aura_gif = random.choice(AURA_GIFS)
+
+        equipment_embed = discord.Embed(
+            title="✦ ───── MISSION PREPARATION ───── ✦",
+            description=(
+                f"**{mission['title']}**\n\n"
+                "Choose your equipment before beginning.\n\n"
+                "You may enter without equipment.\n"
+                "*Your choice will be locked once confirmed.*"
+            ),
+            color=0x74459A
+        )
+        equipment_embed.set_footer(
+            text=(
+                "THE REAL OLROX • "
+                "Richter's childhood nightmare."
+            ),
+            icon_url=self.bot.user.display_avatar.url
+        )
+
+        equipment_view = EquipmentView(
+            ctx.author.id,
+            compatible_items,
+            ctx.guild.id,
+            mission_id,
+            aura_gif
+        )
+
+        decorate_mission_embed(equipment_embed, aura_gif)
+
+        equipment_view.message = await ctx.send(
+            embed=equipment_embed,
+            view=equipment_view,
+            files=get_mission_files(aura_gif)
+        )
+
     @commands.command(name="missiontest")
     @commands.guild_only()
-    async def missiontest(self, ctx):
+    async def missiontest(self, ctx, mission_id="supply_convoy"):
         """Preview the Revolutionary mission without changing balances."""
+        mission_id = mission_id.lower()
+
+        mission = MISSIONS.get(mission_id)
+
+        if mission is None:
+            await ctx.send(
+                "That mission does not exist, monsieur."
+            )
+            return
+
         embed = discord.Embed(
-            title="✦ ───── REVOLUTIONARY MISSION ───── ✦",
+            title="✦ ───── THE REVOLUTIONARY ───── ✦",
             description=(
-                "**The Supply Convoy**\n\n"
-                "A royal convoy is transporting supplies "
-                "through the countryside.\n"
-                "Your allies desperately need those resources.\n\n"
-                "**How will you approach the convoy?**\n\n"
+                f"**{mission['title']}**\n\n"
+                f"{mission['description']}\n\n"
+                f"**{mission['question']}**\n\n"
                 "*Choose your strategy carefully.*"
             ),
             color=0x74459A
         )
 
         embed.set_footer(
-            text="THE REAL OLROX • Taking a lot of risks.",
+            text=(
+                "THE REAL OLROX • "
+                "Richter's childhood nightmare."
+            ),
             icon_url=self.bot.user.display_avatar.url
         )
-        view = MissionView(ctx.author.id)
-        view.message = await ctx.send(embed=embed, view=view)
+
+        aura_gif = random.choice(AURA_GIFS)
+        decorate_mission_embed(embed, aura_gif)
+
+        view = MissionView(
+            ctx.author.id,
+            mission_id=mission_id,
+            aura_gif=aura_gif
+        )
+        view.message = await ctx.send(
+            embed=embed,
+            view=view,
+            files=get_mission_files(aura_gif)
+        )
 
 
 async def setup(bot):
