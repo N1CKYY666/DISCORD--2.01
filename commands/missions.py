@@ -20,7 +20,18 @@ DIVIDER_GIF = GIF_DIR / "divider1.gif"
 AURA_GIFS = [
     GIF_DIR / "aura_farming.gif",
     GIF_DIR / "power.gif",
-    GIF_DIR / "hair.gif"
+    GIF_DIR / "hair.gif",
+    GIF_DIR / "castle.gif",
+    GIF_DIR / "richter4.gif",
+    GIF_DIR / "trevor.gif",
+    GIF_DIR / "richter.gif",
+    GIF_DIR / "mizrak1.gif",
+    GIF_DIR / "mizrak2.gif",
+    GIF_DIR / "mizrak3.gif",
+    GIF_DIR / "alucard.gif",
+    GIF_DIR / "summon.gif",
+    GIF_DIR / "richter3.gif",
+    GIF_DIR / "shove.gif"
 ]
 
 
