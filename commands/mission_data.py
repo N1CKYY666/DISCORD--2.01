@@ -333,4 +333,50 @@ MISSIONS = {
             },
         },
     },
+    "court_whispers": {
+        "title": "Whispers at Court",
+        "job": "informant",
+        "level": 20,
+        "description": (
+            "Some secrets hang among the palace. "
+            "You infiltrate a gala ball where Erzebet's lieutenants "
+            "plan their next move."
+        ),
+        "question": "What will you do?",
+        "choices": {
+            "choice_one": {
+                "label": "Mix with the servants",
+                "emoji": "🎭",
+                "success_chance": 0.80,
+                "success_pay": (255, 470),
+                "failure_pay": (60, 90),
+                "success_text": (
+                    "You hear the exact route of their plan "
+                    "and walk out of the place without drawing attention."
+                ),
+                "failure_text": (
+                    "A vampire sense your pulse, "
+                    "you have to pretend you're drunk and pay a fine "
+                    "to avoid death."
+                ),
+            },
+            "choice_two": {
+                "label": "Chat with Junior Noble",
+                "emoji": "🍷",
+                "success_chance": 0.70,
+                "success_pay": (355, 500),
+                "failure_pay": (35, 50),
+                "success_text": (
+                    "Your charm have inspired confidence in the aristocrat. "
+                    "You have managed to obtain some information and "
+                    "win some attention their attention, charming."
+                ),
+                "failure_text": (
+                    "You're no good at pretending.  "
+                    "You've been set up and you managed to escape, somehow. "
+                    "You're hurt, you must to eat something."
+                ),
+            },
+        },
+    },
 }
