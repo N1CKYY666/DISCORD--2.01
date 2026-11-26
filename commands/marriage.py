@@ -18,7 +18,11 @@ GIF_PATH = (
 )
 
 FOOTER = "THE REAL OLROX • Richter's childhood nightmare."
-LEVELS = ((0, 'Newlyweds', '💍'), (7, 'In Love', '🌹'), (30, 'Soulmates', '💜'))
+LEVELS = (
+    (0, 'Newlyweds', '💍'),
+    (7, 'In Love', '🌹'),
+    (30, 'Soulmates', '💜'),
+)
 LOG = logging.getLogger(__name__)
 
 GIF_DIR = Path(__file__).resolve().parent.parent / "assets" / "gifs"
@@ -174,10 +178,13 @@ class ProposalView(DecisionView):
                 else 'One of you is already married, oh the drama'
             )
             return await self.finish(interaction, 'A LOST PROMISE', reason)
-        await self.finish(interaction, 'ETERNAL BOND',
-                          f'{self.proposer.mention} and {self.target.mention} '
-                          'are now married.\n\n'
-                          '*May your devotion outlive the night!*')
+        await self.finish(
+            interaction,
+            'ETERNAL BOND',
+            f'{self.proposer.mention} and {self.target.mention} '
+            'are now married.\n\n'
+            '*May your devotion outlive the night!*',
+        )
         await self.cog.sync_roles(guild, (self.proposer.id, self.target.id))
 
     @discord.ui.button(
@@ -291,7 +298,7 @@ class Marriage(commands.Cog):
             view.message = message
 
         return message
-    
+
     async def sync_roles(self, guild, user_ids):
         names = {entry[1] for entry in LEVELS}
         for user_id in user_ids:
@@ -355,7 +362,10 @@ class Marriage(commands.Cog):
                 'Choose another human member. Bot marriages require an '
                 'administrator.',
             )
-        if any(get_marriage(ctx.guild.id, m.id) for m in (ctx.author, member)):
+        if any(
+            get_marriage(ctx.guild.id, m.id)
+            for m in (ctx.author, member)
+        ):
             return await self.send(
                 ctx,
                 'FORBIDDEN PROMISE',
@@ -396,14 +406,17 @@ class Marriage(commands.Cog):
             else 'Soulmates — 30 days' if days < 30
             else 'Maximum level reached'
         )
-        await self.send(ctx, 'LOVE IS IN THE AIR',
-                        f'<@{first}> & <@{second}>\n\n'
-                        f'☾ **Marriage Level:** {emoji} {name}\n'
-                        f'☾ **Married Since:** <t:{married_at // 10**9}:D>\n'
-                        f'☾ **Days Together:** {days}\n'
-                        f'☾ **Next Level:** {next_level}\n\n'
-                        '*Hope you stay together.*',
-                        thumbnail=member.display_avatar.url)
+        await self.send(
+            ctx,
+            'LOVE IS IN THE AIR',
+            f'<@{first}> & <@{second}>\n\n'
+            f'☾ **Marriage Level:** {emoji} {name}\n'
+            f'☾ **Married Since:** <t:{married_at // 10**9}:D>\n'
+            f'☾ **Days Together:** {days}\n'
+            f'☾ **Next Level:** {next_level}\n\n'
+            '*Hope you stay together.*',
+            thumbnail=member.display_avatar.url,
+        )
         await self.sync_roles(ctx.guild, (first, second))
 
     @commands.command(name='divorce')
