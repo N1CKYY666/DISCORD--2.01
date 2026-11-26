@@ -37,6 +37,7 @@ async def main():
         await bot.load_extension("commands.missions")
         await bot.load_extension("commands.shop")
         await bot.load_extension("commands.gift")
+        await bot.load_extension("commands.marriage")
 
         # Connect to Discord using the environment token.
         await bot.start(os.environ["DISCORD_TOKEN"])
