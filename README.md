@@ -410,14 +410,14 @@ The reusable mission engine, elite mission templates and marriage system have be
 
 ## Final words
 
-What started as a simple Python exercise became a Discord bot with machine learning, audio processing, custom graphics, interactive games, social interactions, and persistent experience and economy systems.
+What started as a simple Python exercise became a Discord bot with machine learning, audio processing, custom graphics, interactive games, social interactions, and persistent experience and economy systems... months of pure work
 
-There were errors. There were exceptions. There were questionable decisions.
+There were errors, a LOT of them.
 
-There were also Git conflicts that probably shortened someone's lifespan.
+There were also Git conflicts.
 
 But I'm trying to survive.
 
 *Constantly fighting for the 1st place.*
 
-**The Real Olrox — because apparently learning Python wasn't dramatic enough.**
+**The Real Olrox — the aztec vampire learning python.**
