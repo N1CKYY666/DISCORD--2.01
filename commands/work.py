@@ -3,6 +3,7 @@
 import random
 import sqlite3
 import time
+from pathlib import Path
 
 import discord
 from discord.ext import commands
@@ -11,6 +12,11 @@ from commands.jobs import DB_PATH, JOB_EMOJIS, JOBS
 from commands.levels import calculate_level
 
 WORK_COOLDOWN = 30 * 60
+GIF_DIR = Path(__file__).resolve().parent.parent / "assets" / "gifs"
+WORK_THUMBNAILS = (
+    GIF_DIR / "apologies.gif",
+    GIF_DIR / "cute_baby.jpg",
+)
 
 
 def perform_work(guild_id, user_id):
@@ -37,6 +43,15 @@ def perform_work(guild_id, user_id):
 
         if job is None:
             return "invalid_job", None, 0
+
+        if job["mission_type"] != "standard":
+            return "use_mission", job_id, 0
+
+        mission_remaining = check_active_mission(
+            connection, guild_id, user_id, now
+        )
+        if mission_remaining > 0:
+            return "active_mission", job_id, mission_remaining
 
         remaining = WORK_COOLDOWN - (now - last_work)
 
@@ -160,6 +175,7 @@ def perform_random_work(guild_id, user_id):
             job_id
             for job_id, job in JOBS.items()
             if user_level >= job["level"]
+            and job["mission_type"] == "standard"
         ]
 
         if not available_jobs:
@@ -275,100 +291,44 @@ class Work(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def send_work_embed(self, ctx, title, description):
+        """Send a work response with the shared visual style."""
+        embed = discord.Embed(
+            title=title,
+            description=description,
+            color=0x74459A
+        )
+        thumbnails = [path for path in WORK_THUMBNAILS if path.is_file()]
+        files = []
+
+        if thumbnails:
+            thumbnail = random.choice(thumbnails)
+            embed.set_thumbnail(url=f"attachment://{thumbnail.name}")
+            files.append(discord.File(thumbnail, filename=thumbnail.name))
+
+        divider = GIF_DIR / "divider1.gif"
+        embed.set_image(url="attachment://divider1.gif")
+        files.append(discord.File(divider, filename="divider1.gif"))
+        embed.set_footer(
+            text="THE REAL OLROX • Working hard.",
+            icon_url=self.bot.user.display_avatar.url
+        )
+        await ctx.send(embed=embed, files=files)
+
     @commands.command(name="work")
     @commands.guild_only()
     async def work(self, ctx, mode: str = None):
         """Work in the main profession or a random unlocked job."""
         if mode is not None and mode.lower() != "random":
-            await ctx.send(
-                "Unknown work mode, darling.\n"
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── UNKNOWN WORK ───── ✦",
+                "Unknown work mode.\n"
                 "Use `$work` or `$work random`."
             )
             return
 
         is_random = mode is not None
-
-        if not is_random:
-            from commands.missions import (
-                MissionView,
-                get_revolutionary_mission,
-                reserve_mission,
-            )
-
-            with sqlite3.connect(DB_PATH) as connection:
-                current = connection.execute(
-                    """
-                    SELECT job_id
-                    FROM user_jobs
-                    WHERE guild_id = ? AND user_id = ?
-                    """,
-                    (ctx.guild.id, ctx.author.id)
-                ).fetchone()
-
-            if current is not None and current[0] == "revolutionary":
-                mission = get_revolutionary_mission()
-
-                status, remaining = reserve_mission(
-                    ctx.guild.id,
-                    ctx.author.id,
-                    "revolutionary",
-                    mission["id"]
-                )
-
-                if status == "reserved":
-                    embed = discord.Embed(
-                        title=(
-                            "✦ ─── REVOLUTIONARY MISSION ─── ✦"
-                        ),
-                        description=(
-                            f"**{mission['title']}**\n\n"
-                            f"{mission['description']}\n\n"
-                            "**How will you approach the convoy?**"
-                        ),
-                        color=0x74459A
-                    )
-
-                    embed.set_footer(
-                        text=(
-                            "THE REAL OLROX • "
-                            "Taking a lot of risks."
-                        )
-                    )
-
-                    view = MissionView(
-                        ctx.author.id,
-                        guild_id=ctx.guild.id,
-                        mission_id=mission["id"]
-                    )
-
-                    message = await ctx.send(
-                        embed=embed,
-                        view=view
-                    )
-
-                    view.message = message
-                    return
-
-                if status == "cooldown":
-                    minutes, seconds = divmod(remaining, 60)
-                    await ctx.send(
-                        "Your shift isn't available yet.\n"
-                        f"Try again in **{minutes}m {seconds}s**."
-                    )
-                    return
-
-                if status == "active_mission":
-                    await ctx.send(
-                        "You're already on an assignment, darling.\n"
-                        f"**{remaining} seconds** remaining."
-                    )
-                    return
-
-                await ctx.send(
-                    "Your mission couldn't be started. "
-                    "Check your employment contract."
-                )
-                return
 
         if is_random:
             status, job_id, result = perform_random_work(
@@ -381,8 +341,24 @@ class Work(commands.Cog):
                 ctx.author.id
             )
 
+        if status == "use_mission":
+            job = JOBS[job_id]
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── A NEW PURPOSE ───── ✦",
+                (
+                    f"As a **{job['name']}**, your duties require "
+                    "more than ordinary labor.\n\n"
+                    "Use `$mission` for your next assignment.\n"
+                    "Use `$work random` for an ordinary paid shift."
+                )
+            )
+            return
+
         if status == "active_mission":
-            await ctx.send(
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── ACTIVE ASSIGNMENT ───── ✦",
                 "You're already on an assignment, dear.\n"
                 f"Finish it or wait **{result} seconds** "
                 "before accepting another shift."
@@ -390,7 +366,9 @@ class Work(commands.Cog):
             return
 
         if status == "unemployed":
-            await ctx.send(
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── UNEMPLOYED ───── ✦",
                 "Unemployed? How unfortunate.\n"
                 "Browse `$jobs` and choose a profession "
                 "with `$job <profession>`."
@@ -398,14 +376,18 @@ class Work(commands.Cog):
             return
 
         if status == "invalid_job":
-            await ctx.send(
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── INVALID CONTRACT ───── ✦",
                 "Your employment records appear to be corrupted. "
                 "How embarrassing."
             )
             return
 
         if status == "no_jobs":
-            await ctx.send(
+            await self.send_work_embed(
+                ctx,
+                "✦ ───── NO AVAILABLE JOBS ───── ✦",
                 "No professions are available at your level."
             )
             return
@@ -438,42 +420,8 @@ class Work(commands.Cog):
                 "*Your labor has been... adequate.*"
             )
 
-        embed = discord.Embed(
-            title=title,
-            description=description,
-            color=0x74459A
-        )
+        await self.send_work_embed(ctx, title, description)
 
-        image = discord.File(
-            "assets/gifs/apologies.gif",
-            filename="apologies.gif"
-        )
-
-        divider = discord.File(
-            "assets/gifs/divider1.gif",
-            filename="divider1.gif"
-        )
-
-        embed.set_thumbnail(
-            url="attachment://apologies.gif"
-        )
-
-        embed.set_image(
-            url="attachment://divider1.gif"
-        )
-
-        embed.set_footer(
-            text=(
-                "THE REAL OLROX • "
-                "Working hard."
-            ),
-            icon_url=self.bot.user.display_avatar.url
-        )
-
-        await ctx.send(
-            embed=embed,
-            files=[image, divider]
-        )
 
 
 async def setup(bot):
