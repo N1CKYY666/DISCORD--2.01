@@ -379,4 +379,142 @@ MISSIONS = {
             },
         },
     },
+    "dangerous_alliance": {
+        "title": "A Dangerous Alliance",
+        "job": "informant",
+        "level": 20,
+        "description": (
+            "Some secrets hang among the palace. "
+            "You infiltrate a gala ball where Erzebet's lieutenants "
+            "plan their next move."
+        ),
+        "question": "What will you do?",
+        "choices": {
+            "choice_one": {
+                "label": "Mix with the servants",
+                "emoji": "🎭",
+                "success_chance": 0.80,
+                "success_pay": (255, 470),
+                "failure_pay": (60, 90),
+                "success_text": (
+                    "You hear the exact route of their plan "
+                    "and walk out of the place without drawing attention."
+                ),
+                "failure_text": (
+                    "A vampire sense your pulse, "
+                    "you have to pretend you're drunk and pay a fine "
+                    "to avoid death."
+                ),
+            },
+            "choice_two": {
+                "label": "Chat with Junior Noble",
+                "emoji": "🍷",
+                "success_chance": 0.70,
+                "success_pay": (355, 500),
+                "failure_pay": (35, 50),
+                "success_text": (
+                    "Your charm have inspired confidence in the aristocrat. "
+                    "You have managed to obtain some information and "
+                    "win some attention their attention, charming."
+                ),
+                "failure_text": (
+                    "You're no good at pretending.  "
+                    "You've been set up and you managed to escape, somehow. "
+                    "You're hurt, you must to eat something."
+                ),
+            },
+        },
+    },
+    "night_catacombs": {
+        "title": "Night Creatures in the Catacombs",
+        "job": "hunter",
+        "level": 25,
+        "description": (
+            "The villagers report hearing metallic screeches "
+            "coming from beneath the old cemetery; night creatures seem "
+            "to dwell in there."
+        ),
+        "question": "What will you do?",
+        "choices": {
+            "choice_one": {
+                "label": "Descend",
+                "emoji": "⚔️",
+                "success_chance": 0.80,
+                "success_pay": (400, 780),
+                "failure_pay": (95, 130),
+                "success_text": (
+                    "You surprised the creatures "
+                    "You finish them off and immediately start showing off "
+                    "like always. Lucky bastard."
+                ),
+                "failure_text": (
+                    "It was too dark to see "
+                    "and things started to get complicated. "
+                    "They attack you, now you're injured, congratulations."
+                ),
+            },
+            "choice_two": {
+                "label": "Set a trap",
+                "emoji": "⚰️",
+                "success_chance": 0.70,
+                "success_pay": (355, 500),
+                "failure_pay": (35, 50),
+                "success_text": (
+                    "They fell into your trap, nice move. "
+                    "Now you have the money, no damage. "
+                    "Maybe a cold beer will set you up now."
+                ),
+                "failure_text": (
+                    "A flying night creature escaped towards the vilage. "
+                    "You really thought it was going to work? Now you"
+                    "got less money than you expected."
+                ),
+            },
+        },
+    },
+    "blood_coach": {
+        "title": "The Blood Coach",
+        "job": "hunter",
+        "level": 25,
+        "description": (
+            "An armoured carriage with black courtains drives  "
+            "through the woods during midnight taking some humans "
+            "to Erzebet's domain."
+        ),
+        "question": "What will you do?",
+        "choices": {
+            "choice_one": {
+                "label": "Jump onto the roof",
+                "emoji": "⚔️",
+                "success_chance": 0.80,
+                "success_pay": (400, 780),
+                "failure_pay": (95, 130),
+                "success_text": (
+                    "The carriage was eliminated, you stopped the horses "
+                    "and saved the victims. "
+                ),
+                "failure_text": (
+                    "The carriage overturns on a bend; "
+                    "the vampires flee into the mist and now "
+                    "you're left to pay for the damage"
+                ),
+            },
+            "choice_two": {
+                "label": "Break a window",
+                "emoji": "🪟",
+                "success_chance": 0.70,
+                "success_pay": (355, 500),
+                "failure_pay": (35, 50),
+                "success_text": (
+                    "It seems that your skills are good enough to fight "
+                    "vampires, even in such small spaces. "
+                    "You rescued the victims."
+                ),
+                "failure_text": (
+                    "You really thought it was going to work? Now you"
+                    "got less money than you expected."
+                ),
+            },
+        },
+    },
 }
