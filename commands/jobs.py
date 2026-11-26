@@ -86,7 +86,7 @@ JOBS = {
         "level": 25,
         "min_pay": 200,
         "max_pay": 320,
-        "mission_type": "elite"
+        "mission_type": "interactive"
     },
     "summoner": {
         "name": "Summoner",
@@ -118,6 +118,18 @@ JOB_EMOJIS = {
     "informant": "<:envelope1:1573770919011287211>",
     "summoner": "<:summoner:1573767607792701490>",
 }
+
+
+def job_command(job):
+    return "$work" if job["mission_type"] == "standard" else "$mission"
+
+
+def job_pay(job):
+    if job["mission_type"] == "standard":
+        return f"{job['min_pay']}–{job['max_pay']} Livres"
+    if job["mission_type"] == "elite":
+        return "Louis d'or (coming soon)"
+    return "Mission-based · Livres"
 
 
 def select_job(guild_id, user_id, job_id):
@@ -152,6 +164,14 @@ def select_job(guild_id, user_id, job_id):
 
         if current_job == job_id:
             return "same", 0
+
+        active = connection.execute(
+            "SELECT expires_at FROM active_missions "
+            "WHERE guild_id = ? AND user_id = ?",
+            (guild_id, user_id)
+        ).fetchone()
+        if active and active[0] > now:
+            return "active_mission", active[0] - now
 
         remaining = JOB_CHANGE_COOLDOWN - (now - last_change)
 
@@ -189,7 +209,7 @@ class JobsView(discord.ui.View):
     async def interaction_check(self, interaction):
         if interaction.user.id != self.author_id:
             await interaction.response.send_message(
-                "Apply for your own job, darling. Use `$jobs`.",
+                "Apply for your own job. Use `$jobs`.",
                 ephemeral=True
             )
             return False
@@ -294,7 +314,7 @@ class Jobs(commands.Cog):
                 "for testing purposes.\n\n"
                 "◈ **Contract cooldown:** Bypassed\n"
                 "◈ **Required level:** Bypassed\n\n"
-                "*Try not to abuse your privileges, darling.*"
+                "*Try not to abuse your privileges.*"
             ),
             color=0x74459A
         )
@@ -378,7 +398,8 @@ class Jobs(commands.Cog):
                 job_list.append(
                     f"{emoji} **{job['name']}**\n"
                     f"Level {job['level']} · "
-                    f"{job['min_pay']}–{job['max_pay']} Livres\n"
+                    f"{job_pay(job)}\n"
+                    f"Command: `{job_command(job)}` · ID: `{job_id}`\n"
                     f"**{status}**"
                 )
 
@@ -442,7 +463,7 @@ class Jobs(commands.Cog):
         """Choose a primary profession."""
         if profession is None:
             await ctx.send(
-                "A profession, darling. Try `$jobs` first."
+                "A profession. Try `$jobs` first."
             )
             return
 
@@ -485,6 +506,10 @@ class Jobs(commands.Cog):
             profession
         )
 
+        if status == "active_mission":
+            await ctx.send("Finish your current assignment first.")
+            return
+
         if status == "cooldown":
             hours, remainder = divmod(remaining, 3600)
             minutes = remainder // 60
@@ -498,7 +523,7 @@ class Jobs(commands.Cog):
         if status == "same":
             await ctx.send(
                 f"You're already employed as "
-                f"**{job['name']}**, darling."
+                f"**{job['name']}**."
             )
             return
 
@@ -522,7 +547,9 @@ class Jobs(commands.Cog):
                 f"{message}\n\n"
                 f"◈ **Required Level:** {job['level']}\n"
                 f"◈ **Salary:** "
-                f"{job['min_pay']}–{job['max_pay']} Livres\n"
+                f"{job_pay(job)}\n"
+                f"◈ **Command:** `{job_command(job)}`\n"
+                "◈ **Shift cooldown:** 30 minutes\n"
                 "◈ **Contract Changes:** Every 24 hours"
             ),
             color=0x74459A
