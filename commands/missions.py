@@ -25,13 +25,13 @@ AURA_GIFS = [
     GIF_DIR / "richter4.gif",
     GIF_DIR / "trevor.gif",
     GIF_DIR / "richter.gif",
-    GIF_DIR / "mizrak1.gif",
-    GIF_DIR / "mizrak2.gif",
-    GIF_DIR / "mizrak3.gif",
+    *GIF_DIR.glob("mizrak*.gif"),
     GIF_DIR / "alucard.gif",
     GIF_DIR / "summon.gif",
     GIF_DIR / "richter3.gif",
-    GIF_DIR / "shove.gif"
+    GIF_DIR / "shove.gif",
+    *GIF_DIR.glob("sypha*.gif"),
+    *GIF_DIR.glob("another*.gif"),
 ]
 
 
@@ -680,11 +680,11 @@ class Missions(commands.Cog):
             return
 
         embed = discord.Embed(
-            title="✦ ───── THE REVOLUTIONARY ───── ✦",
+            title="✦ ───── YOUR MISSION ───── ✦",
             description=(
-                f"**{mission['title']}**\n\n"
+                f"☾ **{mission['title']}**\n\n"
                 f"{mission['description']}\n\n"
-                f"**{mission['question']}**\n\n"
+                f"☾ **{mission['question']}**\n\n"
                 "*Choose your strategy carefully.*"
             ),
             color=0x74459A
